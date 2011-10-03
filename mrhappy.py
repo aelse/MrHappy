@@ -34,15 +34,18 @@ class MrHappyBot(SingleServerIRCBot):
         return "MrHappy v" + version
 
     def on_welcome(self, c, e):
-        log_msg('Joining channels')
+        log_info('Joining channels')
         for channel in self.join_channels:
             log_debug('Joining %s' % channel)
             c.join(channel)
 
 def log_msg(msg, log_level=logging.INFO):
+    logging.log(log_level, msg)
+
+def log_info(msg):
     global conf
     if conf['verbose']:
-        logging.log(log_level, msg)
+        log_msg(msg, logging.INFO)
 
 def log_debug(msg):
     global conf
@@ -88,7 +91,7 @@ def gen_config():
     Generate a sample configuration object.
     """
     global conf
-    log_msg('Generating sample configuration')
+    log_info('Generating sample configuration')
     from ConfigParser import SafeConfigParser
     config = SafeConfigParser()
     config.add_section('General')
@@ -126,10 +129,10 @@ def main():
     channels = conf['Channel'].values()
     bot = MrHappyBot(server, channels, conf['General']['nick'], conf['General']['name'])
     try:
-        log_msg('Starting Bot')
+        log_info('Starting Bot')
         bot.start()
     except KeyboardInterrupt:
-        log_msg('Received ctrl-c')
+        log_info('Received ctrl-c')
         bot.connection.quit("Terminating")
     except Exception, e:
         logging.exception(e)
