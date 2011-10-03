@@ -1,5 +1,10 @@
 import os
 import sys
+import logging
+
+from ircbot import SingleServerIRCBot
+
+version = "0.1"
 
 # Defaults for bot configuration. Only contains entries where a default
 # value is needed. Anything else must come from configuration file, and
@@ -16,8 +21,36 @@ conf = {
     }
 }
 
-def log_msg(msg):
-    sys.stderr.write(msg+"\n")
+class MrHappyBot(SingleServerIRCBot):
+    def __init__(self, server, channels, nick, name, nickpass=None, recon=60):
+        SingleServerIRCBot.__init__(self, [server], nick, name, recon)
+        global conf
+        self.nick = nick
+        self.name = name
+        self.join_channels = channels
+
+    def get_version(self):
+        global version
+        return "MrHappy v" + version
+
+    def on_welcome(self, c, e):
+        log_msg('Joining channels')
+        for channel in self.join_channels:
+            log_debug('Joining %s' % channel)
+            c.join(channel)
+
+def log_msg(msg, log_level=logging.INFO):
+    global conf
+    if conf['verbose']:
+        logging.log(log_level, msg)
+
+def log_debug(msg):
+    global conf
+    if conf['debug']:
+        log_msg(msg, logging.DEBUG)
+
+def log_error(msg):
+        log_msg(msg, logging.ERROR)
 
 def parse_options():
     import optparse
@@ -40,14 +73,14 @@ def parse_options():
 def process_config(filename):
     from ConfigParser import SafeConfigParser
     global conf
-    if conf['debug']: log_msg('Using configuration file %s' % filename)
+    log_debug('Using configuration file %s' % filename)
 
     parser = SafeConfigParser()
     parser.read(filename)
 
     for section in parser.sections():
         for (name, value) in parser.items(section):
-            if conf['debug']: log_msg('%s => %s = %s' % (section, name, value))
+            log_debug('%s => %s = %s' % (section, name, value))
             conf[section][name] = value
 
 def gen_config():
@@ -55,7 +88,7 @@ def gen_config():
     Generate a sample configuration object.
     """
     global conf
-    if conf['verbose']: log_msg('Generating sample configuration')
+    log_msg('Generating sample configuration')
     from ConfigParser import SafeConfigParser
     config = SafeConfigParser()
     config.add_section('General')
@@ -72,6 +105,7 @@ def gen_config():
     return config
 
 def main():
+    global conf
     options = parse_options()
     conf['debug'] = options.debug
     if options.debug:
@@ -84,9 +118,23 @@ def main():
         return 0
 
     if not os.path.exists(options.config_file):
-        log_msg('No such configuration file: %s' % options.config_file)
+        log_error('No such configuration file: %s' % options.config_file)
         return 1
     process_config(options.config_file)
+
+    server = (conf['Server']['host'], int(conf['Server']['port']))
+    channels = conf['Channel'].values()
+    bot = MrHappyBot(server, channels, conf['General']['nick'], conf['General']['name'])
+    try:
+        log_msg('Starting Bot')
+        bot.start()
+    except KeyboardInterrupt:
+        log_msg('Received ctrl-c')
+        bot.connection.quit("Terminating")
+    except Exception, e:
+        logging.exception(e)
+        bot.connection.quit("Exception")
+        return 1
 
     return 0
 
