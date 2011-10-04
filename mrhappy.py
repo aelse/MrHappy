@@ -1,8 +1,11 @@
 import os
 import sys
+import string
 import logging
 
 from ircbot import SingleServerIRCBot
+from irclib import nm_to_n, irc_lower
+import botcommon
 
 version = "0.1"
 
@@ -24,10 +27,40 @@ conf = {
 class MrHappyBot(SingleServerIRCBot):
     def __init__(self, server, channels, nick, name, nickpass=None, recon=60):
         SingleServerIRCBot.__init__(self, [server], nick, name, recon)
-        global conf
-        self.nick = nick
+        self.queue = botcommon.OutputManager(self.connection)
+        self.nickname = nick
         self.name = name
+        self.channel = '#test'
         self.join_channels = channels
+
+    def on_privmsg(self, c, e):
+        log_debug('Received private message')
+        from_nick = nm_to_n(e.source())
+        self.do_command(e, e.arguments()[0], from_nick)
+
+    def on_pubmsg(self, c, e):
+        log_debug('Received public message')
+        from_nick = nm_to_n(e.source())
+        a = string.split(e.arguments()[0], ":", 1)
+        if len(a) > 1 and irc_lower(a[0]) == irc_lower(self.nickname):
+            self.do_command(e, string.strip(a[1]), from_nick)
+
+    def say_public(self, text):
+        "Print TEXT into public channel, for all to see."
+        log_debug('Sending public: %s' % text)
+        self.queue.send(text, self.channel)
+
+    def say_private(self, nick, text):
+        "Send private message of TEXT to NICK."
+        log_debug('Sending private to %s: %s' % (nick, text))
+        self.queue.send(text,nick)
+
+    def reply(self, text, to_private=None):
+        "Send TEXT to either public channel or TO_PRIVATE nick (if defined)."
+        if to_private is not None:
+            self.say_private(to_private, text)
+        else:
+            self.say_public(text)
 
     def get_version(self):
         global version
@@ -39,7 +72,15 @@ class MrHappyBot(SingleServerIRCBot):
             log_debug('Joining %s' % channel)
             c.join(channel)
 
+    def do_command(self, e, cmd, from_private):
+        log_debug('Received a command')
+        target = None
+        if e.eventtype() == "privmsg":
+            target = from_private.strip()
+        self.reply('Responding to direct request.')
+
 def log_msg(msg, log_level=logging.INFO):
+    print 'x: %s' % msg
     logging.log(log_level, msg)
 
 def log_info(msg):
