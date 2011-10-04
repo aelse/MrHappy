@@ -7,6 +7,7 @@ from logging import debug, info, warn, error
 from ircbot import SingleServerIRCBot
 from irclib import nm_to_n, irc_lower
 import botcommon
+from pprint import PrettyPrinter
 
 version = "0.1"
 
@@ -29,39 +30,41 @@ class MrHappyBot(SingleServerIRCBot):
     def __init__(self, server, channels, nick, name, nickpass=None, recon=60):
         SingleServerIRCBot.__init__(self, [server], nick, name, recon)
         self.queue = botcommon.OutputManager(self.connection)
+        self.queue.start()
         self.nickname = nick
         self.name = name
-        self.channel = '#test'
         self.join_channels = channels
 
     def on_privmsg(self, c, e):
         debug('Received private message')
         from_nick = nm_to_n(e.source())
-        self.do_command(e, e.arguments()[0], from_nick)
+        self.do_command(e, e.arguments()[0], string.strip(from_nick))
 
     def on_pubmsg(self, c, e):
         debug('Received public message')
         from_nick = nm_to_n(e.source())
         a = string.split(e.arguments()[0], ":", 1)
         if len(a) > 1 and irc_lower(a[0]) == irc_lower(self.nickname):
-            self.do_command(e, string.strip(a[1]), from_nick)
+            self.do_command(e, string.strip(a[1]), string.strip(from_nick))
 
-    def say_public(self, text):
+    def say_public(self, channel, text):
         "Print TEXT into public channel, for all to see."
         debug('Sending public: %s' % text)
-        self.queue.send(text, self.channel)
+        self.queue.send(text, channel)
 
     def say_private(self, nick, text):
         "Send private message of TEXT to NICK."
         debug('Sending private to %s: %s' % (nick, text))
-        self.queue.send(text,nick)
+        self.queue.send(text, nick)
 
-    def reply(self, text, to_private=None):
+    def reply(self, text, to_channel, to_private=None):
         "Send TEXT to either public channel or TO_PRIVATE nick (if defined)."
-        if to_private is not None:
+        if to_channel is not None:
+            self.say_public(to_channel, text)
+        elif to_private is not None:
             self.say_private(to_private, text)
         else:
-            self.say_public(text)
+            warn('Trying to send a message without channel or nick')
 
     def get_version(self):
         global version
@@ -70,15 +73,16 @@ class MrHappyBot(SingleServerIRCBot):
     def on_welcome(self, c, e):
         info('Joining channels')
         for channel in self.join_channels:
-            debug('Joining %s' % channel)
+            info('Joining %s' % channel)
             c.join(channel)
 
-    def do_command(self, e, cmd, from_private):
+    def do_command(self, e, cmd, from_nick):
         debug('Received a command')
-        target = None
-        if e.eventtype() == "privmsg":
-            target = from_private.strip()
-        self.reply('Responding to direct request.')
+        channel = None
+        target = from_nick
+        if e.eventtype() == "pubmsg":
+            channel = e.target()
+        self.reply('Responding to direct request.', channel, target)
 
 def log_msg(msg, log_level=logging.INFO):
     print 'x: %s' % msg
