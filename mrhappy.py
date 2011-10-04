@@ -2,6 +2,7 @@ import os
 import sys
 import string
 import logging
+from logging import debug, info, warn, error
 
 from ircbot import SingleServerIRCBot
 from irclib import nm_to_n, irc_lower
@@ -34,12 +35,12 @@ class MrHappyBot(SingleServerIRCBot):
         self.join_channels = channels
 
     def on_privmsg(self, c, e):
-        log_debug('Received private message')
+        debug('Received private message')
         from_nick = nm_to_n(e.source())
         self.do_command(e, e.arguments()[0], from_nick)
 
     def on_pubmsg(self, c, e):
-        log_debug('Received public message')
+        debug('Received public message')
         from_nick = nm_to_n(e.source())
         a = string.split(e.arguments()[0], ":", 1)
         if len(a) > 1 and irc_lower(a[0]) == irc_lower(self.nickname):
@@ -47,12 +48,12 @@ class MrHappyBot(SingleServerIRCBot):
 
     def say_public(self, text):
         "Print TEXT into public channel, for all to see."
-        log_debug('Sending public: %s' % text)
+        debug('Sending public: %s' % text)
         self.queue.send(text, self.channel)
 
     def say_private(self, nick, text):
         "Send private message of TEXT to NICK."
-        log_debug('Sending private to %s: %s' % (nick, text))
+        debug('Sending private to %s: %s' % (nick, text))
         self.queue.send(text,nick)
 
     def reply(self, text, to_private=None):
@@ -67,13 +68,13 @@ class MrHappyBot(SingleServerIRCBot):
         return "MrHappy v" + version
 
     def on_welcome(self, c, e):
-        log_info('Joining channels')
+        info('Joining channels')
         for channel in self.join_channels:
-            log_debug('Joining %s' % channel)
+            debug('Joining %s' % channel)
             c.join(channel)
 
     def do_command(self, e, cmd, from_private):
-        log_debug('Received a command')
+        debug('Received a command')
         target = None
         if e.eventtype() == "privmsg":
             target = from_private.strip()
@@ -117,14 +118,14 @@ def parse_options():
 def process_config(filename):
     from ConfigParser import SafeConfigParser
     global conf
-    log_debug('Using configuration file %s' % filename)
+    debug('Using configuration file %s' % filename)
 
     parser = SafeConfigParser()
     parser.read(filename)
 
     for section in parser.sections():
         for (name, value) in parser.items(section):
-            log_debug('%s => %s = %s' % (section, name, value))
+            debug('%s => %s = %s' % (section, name, value))
             conf[section][name] = value
 
 def gen_config():
@@ -132,7 +133,7 @@ def gen_config():
     Generate a sample configuration object.
     """
     global conf
-    log_info('Generating sample configuration')
+    info('Generating sample configuration')
     from ConfigParser import SafeConfigParser
     config = SafeConfigParser()
     config.add_section('General')
@@ -151,10 +152,16 @@ def gen_config():
 def main():
     global conf
     options = parse_options()
+    conf['verbose'] = options.verbose
+    if options.verbose:
+        loglevel = getattr(logging, 'INFO')
+        logging.basicConfig(level=loglevel)
+
     conf['debug'] = options.debug
     if options.debug:
-        options.verbose = True
-    conf['verbose'] = options.verbose
+        conf['verbose'] = True
+        loglevel = getattr(logging, 'DEBUG')
+        logging.basicConfig(level=loglevel)
 
     if options.gen_config:
         config = gen_config()
@@ -162,7 +169,7 @@ def main():
         return 0
 
     if not os.path.exists(options.config_file):
-        log_error('No such configuration file: %s' % options.config_file)
+        error('No such configuration file: %s' % options.config_file)
         return 1
     process_config(options.config_file)
 
@@ -170,10 +177,10 @@ def main():
     channels = conf['Channel'].values()
     bot = MrHappyBot(server, channels, conf['General']['nick'], conf['General']['name'])
     try:
-        log_info('Starting Bot')
+        info('Starting Bot')
         bot.start()
     except KeyboardInterrupt:
-        log_info('Received ctrl-c')
+        info('Received ctrl-c')
         bot.connection.quit("Terminating")
     except Exception, e:
         logging.exception(e)
