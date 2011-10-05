@@ -7,6 +7,7 @@ from logging import debug, info, warn, error
 from ircbot import SingleServerIRCBot
 from irclib import nm_to_n, irc_lower
 import botcommon
+from botplugins.botplugin import BotPlugin
 from pprint import PrettyPrinter
 
 version = "0.1"
@@ -34,6 +35,28 @@ class MrHappyBot(SingleServerIRCBot):
         self.nickname = nick
         self.name = name
         self.join_channels = channels
+        self.plugins = []
+
+    def load_plugin(self, modname):
+        debug('Inspecting %s' % modname)
+        plugin = __import__(modname)
+        d = plugin.__dict__
+        barename = modname[modname.rfind('.')+1:]
+        d = d[barename].__dict__
+
+        discovered = []
+        for key, entry in d.items():
+            if key.startswith('__'):
+                continue
+            t = str(type(entry)).split("'")[1]
+            if t == 'classobj' and issubclass(entry, BotPlugin):
+                if key != BotPlugin.__name__:
+                    info('Loading plugin %s' % key)
+                    discovered.append(entry())
+
+        for p in discovered:
+            self.plugins.append(p)
+            p.setup()
 
     def on_privmsg(self, c, e):
         debug('Received private message')
@@ -76,13 +99,28 @@ class MrHappyBot(SingleServerIRCBot):
             info('Joining %s' % channel)
             c.join(channel)
 
-    def do_command(self, e, cmd, from_nick):
+    def do_command(self, e, cmd, nick):
         debug('Received a command')
         channel = None
-        target = from_nick
         if e.eventtype() == "pubmsg":
             channel = e.target()
-        self.reply('Responding to direct request.', channel, target)
+
+        if(cmd.find(' ') > -1):
+            command, args = cmd.split(' ', 1)
+        else:
+            command, args = cmd, ''
+        command = command.lower()
+
+        for plugin in self.plugins:
+            f = None
+            try:
+                f = getattr(plugin, 'command_' + command.lower())
+            except AttributeError:
+                pass
+
+            if f:
+                f(self, e, command, args, channel, nick)
+        #self.reply('Responding to direct request.', channel, nick)
 
 def log_msg(msg, log_level=logging.INFO):
     print 'x: %s' % msg
@@ -188,6 +226,13 @@ def main():
     server = (conf['Server']['host'], int(conf['Server']['port']))
     channels = conf['Channel'].values()
     bot = MrHappyBot(server, channels, conf['General']['nick'], conf['General']['name'])
+
+    for _, _, files in os.walk('botplugins'):
+        for f in files:
+            if f.endswith('.py') and not f.startswith('__'):
+                modname = string.join(('botplugins', f[:f.find('.')]), '.')
+                bot.load_plugin(modname)
+
     try:
         info('Starting Bot')
         bot.start()
