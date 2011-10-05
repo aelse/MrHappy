@@ -122,23 +122,6 @@ class MrHappyBot(SingleServerIRCBot):
                 f(self, e, command, args, channel, nick)
         #self.reply('Responding to direct request.', channel, nick)
 
-def log_msg(msg, log_level=logging.INFO):
-    print 'x: %s' % msg
-    logging.log(log_level, msg)
-
-def log_info(msg):
-    global conf
-    if conf['verbose']:
-        log_msg(msg, logging.INFO)
-
-def log_debug(msg):
-    global conf
-    if conf['debug']:
-        log_msg(msg, logging.DEBUG)
-
-def log_error(msg):
-        log_msg(msg, logging.ERROR)
-
 def parse_options():
     import optparse
     parser = optparse.OptionParser()
