@@ -110,6 +110,8 @@ def parse_options():
     parser.add_option("-d", "--debug", dest="debug", default=False,
         action="store_true",
         help="print debugging information")
+    parser.add_option("-l", "--logfile", dest="log_file", metavar="FILE",
+        help="log to file")
     parser.add_option("-c", "--config", dest="config_file", metavar="FILE",
         default="mrhappy.cfg",
         help="bot configuration file")
@@ -168,7 +170,10 @@ def main():
         conf['verbose'] = True
         loglevel = getattr(logging, 'DEBUG')
 
-    logging.basicConfig(level=loglevel, format=logformat)
+    if options.log_file:
+        logging.basicConfig(filename=options.log_file, level=loglevel, format=logformat)
+    else:
+        logging.basicConfig(level=loglevel, format=logformat)
 
     if options.gen_config:
         config = gen_config()
