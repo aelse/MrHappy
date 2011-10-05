@@ -155,17 +155,20 @@ def gen_config():
 
 def main():
     global conf
+    loglevel = getattr(logging, 'WARNING')
+    logformat = '%(asctime)s - %(levelname)s - %(message)s'
+
     options = parse_options()
     conf['verbose'] = options.verbose
     if options.verbose:
         loglevel = getattr(logging, 'INFO')
-        logging.basicConfig(level=loglevel)
 
     conf['debug'] = options.debug
     if options.debug:
         conf['verbose'] = True
         loglevel = getattr(logging, 'DEBUG')
-        logging.basicConfig(level=loglevel)
+
+    logging.basicConfig(level=loglevel, format=logformat)
 
     if options.gen_config:
         config = gen_config()
