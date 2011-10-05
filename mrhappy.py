@@ -61,7 +61,7 @@ class MrHappyBot(SingleServerIRCBot):
     def on_privmsg(self, c, e):
         debug('Received private message')
         from_nick = nm_to_n(e.source())
-        self.do_command(e, e.arguments()[0], string.strip(from_nick))
+        self.do_command(e, string.strip(e.arguments()[0]), string.strip(from_nick))
 
     def on_pubmsg(self, c, e):
         debug('Received public message')
