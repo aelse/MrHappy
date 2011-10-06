@@ -3,7 +3,6 @@ import sys
 import string
 import logging
 from logging import debug, info, warn, error
-import copy
 
 from ircbot import SingleServerIRCBot
 from irclib import nm_to_n, irc_lower
@@ -139,7 +138,7 @@ class MrHappyBot(SingleServerIRCBot):
 
         # must operate on copy of list in case self.plugins changes
         # in the course of handling commands (ie. plugins reload).
-        plugins = copy.copy(self.plugins)
+        plugins = list(self.plugins)
         for plugin in plugins:
             f = None
             try:
