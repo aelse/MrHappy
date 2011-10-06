@@ -1,15 +1,29 @@
 from botplugin import BotPlugin
+import logging
 import xml.dom.minidom
 import urllib
 import re
 
 class Jenkins(BotPlugin):
 
+    config_options = {
+        'jenkins_url': 'http://jenkins',
+        'status_msg_limit': '-1',
+    }
+
     def setup(self, options):
-        self.jenkins_url = 'http://jenkins'
+        self.jenkins_url = None
+        try:
+            self.jenkins_url = options['jenkins_url']
+        except KeyError:
+            logging.warning('Must provide a jenkins url like http://jenkins')
         self.proj_matcher = re.compile('[\w\d\-_\.]+')
         # limit lines of information to be reported for a request
-        self.status_msg_limit = 5
+        self.status_msg_limit = -1
+        try:
+            self.status_msg_limit = int(options['status_msg_limit'])
+        except:
+            logging.warning('Invalid status_msg_limit')
 
     def command_jenkins(self, bot, e, command, arguments, channel, nick):
         arguments = arguments.strip()
@@ -23,6 +37,10 @@ class Jenkins(BotPlugin):
             cmd, args = arguments.split(' ', 1)
         else:
             cmd, args = arguments, ''
+
+        if self.jenkins_url is None and cmd != 'help':
+            bot.reply('No configured jenkins server', channel, nick)
+            return
 
         f = None
         try:
