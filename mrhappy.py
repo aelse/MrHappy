@@ -158,6 +158,8 @@ def process_config(filename):
     for section in parser.sections():
         for (name, value) in parser.items(section):
             debug('%s => %s = %s' % (section, name, value))
+            if not conf.has_key(section):
+                conf[section] = {}
             conf[section][name] = value
 
 def gen_config(load_plugins, plugindir):
