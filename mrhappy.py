@@ -22,6 +22,8 @@ conf = {
     },
     'Server': {
         'retry_interval': '60',
+        'host': 'localhost',
+        'port': '6667',
     },
     'Channel': {
     }
@@ -55,8 +57,8 @@ class MrHappyBot(SingleServerIRCBot):
                     discovered.append(entry())
 
         for p in discovered:
+            p.module_barename = barename
             self.plugins.append(p)
-            p.setup()
 
     def on_privmsg(self, c, e):
         debug('Received private message')
@@ -139,6 +141,9 @@ def parse_options():
     parser.add_option("-g", "--gen-config", dest="gen_config", default=False,
         action="store_true",
         help="generate a bot configuration file")
+    parser.add_option("-p", "--plugins", dest="load_plugins", default=False,
+        action="store_true",
+        help="load plugins (or include plugin options in --gen-config)")
     (options, args) = parser.parse_args()
     return options
 
@@ -155,11 +160,10 @@ def process_config(filename):
             debug('%s => %s = %s' % (section, name, value))
             conf[section][name] = value
 
-def gen_config():
+def gen_config(load_plugins, plugindir):
     """
     Generate a sample configuration object.
     """
-    global conf
     info('Generating sample configuration')
     from ConfigParser import SafeConfigParser
     config = SafeConfigParser()
@@ -174,12 +178,58 @@ def gen_config():
     config.add_section('Channel')
     config.set('Channel', 'a', '#MrHappy\'s_Wild_Ride')
     config.set('Channel', 'b', '#testchan')
+
+    if load_plugins:
+        # bot not yet created as we have not read its configuration.
+        # Instantiate a bot with skeleton config and load plugins
+        global conf
+        server = (conf['Server']['host'], int(conf['Server']['port']))
+        bot = MrHappyBot(server, [], conf['General']['nick'], conf['General']['name'])
+
+        load_modules(bot, plugindir)
+        for p in bot.plugins:
+            options = {}
+            try:
+                options = p.config_options
+            except AttributeError:
+                continue
+            section_name = 'plugin_' + p.module_barename
+            for o, v in options.items():
+                if not config.has_section(section_name):
+                    config.add_section(section_name)
+                config.set(section_name, o, v)
     return config
+
+def discover_modules(directory):
+    modules = []
+    for _, _, files in os.walk(directory):
+        for f in files:
+            if f.endswith('.py') and not f.startswith('__'):
+                modname = f[:f.find('.')]
+                modules.append(modname)
+    return modules
+
+def load_modules(bot, plugindir):
+    modules = discover_modules(plugindir)
+    for m in modules:
+        modname = string.join((plugindir.replace('/', '.'), m), '.')
+        bot.load_plugin(modname)
+
+def setup_plugins(bot):
+    for p in bot.plugins:
+        plugin_config = []
+        section_name = 'plugin_' + p.module_barename
+        try:
+            plugin_config = conf[section_name]
+        except KeyError:
+            debug('No configuration section \'%s\' for %s' % (section_name, p.module_barename))
+        p.setup(plugin_config)
 
 def main():
     global conf
     loglevel = getattr(logging, 'WARNING')
     logformat = '%(asctime)s - %(levelname)s - %(message)s'
+    plugindir = 'botplugins'
 
     options = parse_options()
     conf['verbose'] = options.verbose
@@ -197,7 +247,7 @@ def main():
         logging.basicConfig(level=loglevel, format=logformat)
 
     if options.gen_config:
-        config = gen_config()
+        config = gen_config(options.load_plugins, plugindir)
         config.write(sys.stdout)
         return 0
 
@@ -210,11 +260,9 @@ def main():
     channels = conf['Channel'].values()
     bot = MrHappyBot(server, channels, conf['General']['nick'], conf['General']['name'])
 
-    for _, _, files in os.walk('botplugins'):
-        for f in files:
-            if f.endswith('.py') and not f.startswith('__'):
-                modname = string.join(('botplugins', f[:f.find('.')]), '.')
-                bot.load_plugin(modname)
+    if options.load_plugins:
+        load_modules(bot, plugindir)
+        setup_plugins(bot)
 
     try:
         info('Starting Bot')
