@@ -3,6 +3,7 @@ import sys
 import string
 import logging
 from logging import debug, info, warn, error
+import copy
 
 from ircbot import SingleServerIRCBot
 from irclib import nm_to_n, irc_lower
@@ -39,6 +40,22 @@ class MrHappyBot(SingleServerIRCBot):
         self.join_channels = channels
         self.plugins = []
 
+    def load_modules(self):
+        modules = discover_modules(self.conf['plugindir'])
+        for m in modules:
+            modname = string.join((self.conf['plugindir'].replace('/', '.'), m), '.')
+            self.load_plugin(modname)
+
+    def setup_plugins(self):
+        for p in self.plugins:
+            plugin_config = []
+            section_name = 'plugin_' + p.module_barename
+            try:
+                plugin_config = self.conf[section_name]
+            except KeyError:
+                debug('No configuration section \'%s\' for %s' % (section_name, p.module_barename))
+            p.setup(plugin_config)
+
     def load_plugin(self, modname):
         debug('Inspecting %s' % modname)
         plugin = __import__(modname)
@@ -59,6 +76,13 @@ class MrHappyBot(SingleServerIRCBot):
         for p in discovered:
             p.module_barename = barename
             self.plugins.append(p)
+
+    def unload_plugin(self, plugin):
+        plugin.teardown()
+        try:
+            self.plugins.remove(plugin)
+        except ValueError:
+            warning('Attempted to remove unregistered plugin')
 
     def on_privmsg(self, c, e):
         debug('Received private message')
@@ -113,7 +137,10 @@ class MrHappyBot(SingleServerIRCBot):
             command, args = cmd, ''
         command = command.lower()
 
-        for plugin in self.plugins:
+        # must operate on copy of list in case self.plugins changes
+        # in the course of handling commands (ie. plugins reload).
+        plugins = copy.copy(self.plugins)
+        for plugin in plugins:
             f = None
             try:
                 f = getattr(plugin, 'command_' + command.lower())
@@ -162,7 +189,7 @@ def process_config(filename):
                 conf[section] = {}
             conf[section][name] = value
 
-def gen_config(load_plugins, plugindir):
+def gen_config(load_plugins):
     """
     Generate a sample configuration object.
     """
@@ -187,8 +214,9 @@ def gen_config(load_plugins, plugindir):
         global conf
         server = (conf['Server']['host'], int(conf['Server']['port']))
         bot = MrHappyBot(server, [], conf['General']['nick'], conf['General']['name'])
+        bot.conf = conf
 
-        load_modules(bot, plugindir)
+        bot.load_modules()
         for p in bot.plugins:
             options = {}
             try:
@@ -211,27 +239,11 @@ def discover_modules(directory):
                 modules.append(modname)
     return modules
 
-def load_modules(bot, plugindir):
-    modules = discover_modules(plugindir)
-    for m in modules:
-        modname = string.join((plugindir.replace('/', '.'), m), '.')
-        bot.load_plugin(modname)
-
-def setup_plugins(bot):
-    for p in bot.plugins:
-        plugin_config = []
-        section_name = 'plugin_' + p.module_barename
-        try:
-            plugin_config = conf[section_name]
-        except KeyError:
-            debug('No configuration section \'%s\' for %s' % (section_name, p.module_barename))
-        p.setup(plugin_config)
-
 def main():
     global conf
     loglevel = getattr(logging, 'WARNING')
     logformat = '%(asctime)s - %(levelname)s - %(message)s'
-    plugindir = 'botplugins'
+    conf['plugindir'] = 'botplugins'
 
     options = parse_options()
     conf['verbose'] = options.verbose
@@ -249,7 +261,7 @@ def main():
         logging.basicConfig(level=loglevel, format=logformat)
 
     if options.gen_config:
-        config = gen_config(options.load_plugins, plugindir)
+        config = gen_config(options.load_plugins)
         config.write(sys.stdout)
         return 0
 
@@ -261,10 +273,11 @@ def main():
     server = (conf['Server']['host'], int(conf['Server']['port']))
     channels = conf['Channel'].values()
     bot = MrHappyBot(server, channels, conf['General']['nick'], conf['General']['name'])
+    bot.conf = conf
 
     if options.load_plugins:
-        load_modules(bot, plugindir)
-        setup_plugins(bot)
+        bot.load_modules()
+        bot.setup_plugins()
 
     try:
         info('Starting Bot')
