@@ -67,7 +67,7 @@ class Jenkins(BotPlugin):
     def cmd_buildstatus(self, proj_name):
         if not self.proj_matcher.match(proj_name):
             return 'Badly formatted project %s' % proj_name
-        return gen_build_info(proj_name, self.status_msg_limit)
+        return gen_build_info(self.jenkins_url, proj_name, self.status_msg_limit)
 
 
 def fetch_url(url):
@@ -81,8 +81,8 @@ def fetch_url(url):
         pass
     return data
 
-def gen_build_info(proj_name, limit=-1):
-    url = 'http://jenkins/job/%s/rssAll' % proj_name
+def gen_build_info(jenkins_url, proj_name, limit=-1):
+    url = '%s/job/%s/rssAll' % (jenkins_url, proj_name)
     rss = fetch_url(url)
     if not rss:
         return ['Unable to fetch build information']
@@ -104,5 +104,5 @@ def gen_build_info(proj_name, limit=-1):
     return buildstatus
 
 if __name__ == '__main__':
-    for line in gen_build_info('bpl-pull-queue'):
+    for line in gen_build_info('http://jenkins', 'bpl-pull-queue'):
         print line
