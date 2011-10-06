@@ -32,7 +32,7 @@ conf = {
 class MrHappyBot(SingleServerIRCBot):
     def __init__(self, server, channels, nick, name, nickpass=None, recon=60):
         SingleServerIRCBot.__init__(self, [server], nick, name, recon)
-        self.queue = botcommon.OutputManager(self.connection)
+        self.queue = botcommon.OutputManager(self.connection, .2)
         self.queue.start()
         self.nickname = nick
         self.name = name
