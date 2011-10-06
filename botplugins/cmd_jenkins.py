@@ -5,7 +5,7 @@ import re
 
 class Jenkins(BotPlugin):
 
-    def setup(self):
+    def setup(self, options):
         self.jenkins_url = 'http://jenkins'
         self.proj_matcher = re.compile('[\w\d\-_\.]+')
         # limit lines of information to be reported for a request
