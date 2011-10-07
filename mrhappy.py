@@ -26,6 +26,7 @@ import sys
 import string
 import logging
 from logging import debug, info, warn, error
+import re
 
 from ircbot import SingleServerIRCBot
 from irclib import nm_to_n, irc_lower
@@ -152,6 +153,9 @@ class MrHappyBot(SingleServerIRCBot):
         channel = None
         if e.eventtype() == "pubmsg":
             channel = e.target()
+
+        # Guarantee plugins a single space between args
+        cmd = re.sub('\s\s+', ' ', cmd.strip())
 
         if(cmd.find(' ') > -1):
             command, args = cmd.split(' ', 1)
