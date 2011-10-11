@@ -11,7 +11,7 @@ class Jenkins(BotPlugin):
         'status_msg_limit': '-1',
     }
 
-    def setup(self, options):
+    def setup(self, bot, options):
         self.jenkins_url = None
         try:
             self.jenkins_url = options['jenkins_url']
