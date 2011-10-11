@@ -77,7 +77,7 @@ class MrHappyBot(SingleServerIRCBot):
                 plugin_config = self.conf[section_name]
             except KeyError:
                 debug('No configuration section \'%s\' for %s' % (section_name, p.module_barename))
-            p.setup(plugin_config)
+            p.setup(self, plugin_config)
 
     def load_plugin(self, modname):
         debug('Inspecting %s' % modname)
