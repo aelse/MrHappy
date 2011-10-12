@@ -104,5 +104,8 @@ def gen_build_info(jenkins_url, proj_name, limit=-1):
     return buildstatus
 
 if __name__ == '__main__':
-    for line in gen_build_info('http://jenkins', 'bpl-pull-queue'):
+    import sys
+    jenkins_url = sys.argv[1]
+    proj_name = sys.argv[2]
+    for line in gen_build_info(jenkins_url, proj_name):
         print line
