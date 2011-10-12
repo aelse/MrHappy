@@ -108,7 +108,7 @@ def discover_repos(path_to_repos):
         path = '/'.join((path_to_repos, d))
         try:
             # if exception not raised return code 0 and it is a git dir.
-            subprocess.check_call(['git', 'rev-parse', '--git-dir'], cwd=path)
+            subprocess.check_call(['git', 'rev-parse', '--git-dir'], cwd=path, stdout=subprocess.DEVNULL)
         except:
             continue
         repos.append(d)
