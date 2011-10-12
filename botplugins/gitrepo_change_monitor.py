@@ -51,11 +51,15 @@ class GitRepoMonitor(BotPlugin):
     def notify_channel_of_changes(self):
         logging.info('Checking for changes in git repositories.')
         if self.git_repos and self.notify_channel:
+            logging.info('Checking for changes in git repositories.')
             repos = discover_repos(self.git_repos)
             for repo in repos:
+                logging.debug('Looking in repo %s' % repo)
                 msgs = monitor_repo(self.git_repos, repo)   
                 for msg in msgs:
                     self.bot.say_public(self.notify_channel, msg)
+        else:
+            logging.info('Skipping git repository checks.')
 
         # start a new timer if existing timer wasn't cancelled,
         # which may have happened while we were polling repos.
