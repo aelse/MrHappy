@@ -39,7 +39,7 @@ class RollForIt(BotPlugin):
 
         # Request for a roll while a roll is going
         if self.timer and channel != self.channel:
-            bot.reply('Resolving current roll. Try again in %d seconds.' % self.roll_delay)
+            bot.say_private(nick, 'Resolving current roll. Try again in %d seconds.' % self.roll_delay)
             return
 
         # Start a new roll
