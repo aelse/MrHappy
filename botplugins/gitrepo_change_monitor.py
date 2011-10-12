@@ -1,8 +1,67 @@
+from botplugin import BotPlugin
 import logging
 import time
 import subprocess
 import os
 import re
+import threading
+
+class GitRepoMonitor(BotPlugin):
+
+    timer = None
+    git_repos = None
+    notify_channel = None
+    git_fetch_interval = 60
+
+    config_options = {
+        'git_repos': '/path/to/git/repos',
+        'git_fetch_interval': str(git_fetch_interval),
+        'notify_channel': '',
+    }
+
+    def setup(self, bot, options):
+        self.bot = bot
+        if options.has_key('git_repos'):
+            self.git_repos = options['git_repos']
+        if options.has_key('git_fetch_interval'):
+            try:
+                fetch_interval = int(options['git_fetch_interval'])
+                self.git_fetch_interval = fetch_interval
+            except:
+                pass
+        if options.has_key('notify_channel'):
+            self.notify_channel = options['notify_channel']
+
+        if not self.timer and self.git_fetch_interval:
+            logging.info('Setting git monitor timer to %d seconds.' % self.git_fetch_interval)
+            self.timer = threading.Timer(self.git_fetch_interval, self.notify_channel_of_changes)
+            self.timer.start()
+        else:
+            logging.warning('Not setting a git monitor timer.')
+
+    def teardown(self):
+        if self.timer:
+            if self.timer.isAlive():
+                self.timer.cancel()
+            self.timer = None
+
+    def notify_channel_of_changes(self):
+        logging.info('Checking for changes in git repositories.')
+        if self.git_repos and self.notify_channel:
+            repos = discover_repos(self.git_repos)
+            for repo in repos:
+                msgs = monitor_repo(self.git_repos, repo)   
+                for msg in msgs:
+                    self.bot.say_public(self.notify_channel, msg)
+
+        # start a new timer if existing timer wasn't cancelled,
+        # which may have happened while we were polling repos.
+        if self.timer and self.git_fetch_interval:
+            self.timer = threading.Timer(self.git_fetch_interval, self.notify_channel_of_changes)
+            self.timer.start()
+        else:
+            logging.warning('Not setting a new git monitor timer.')
+
 
 def monitor_repo(path_to_repos, repo):
     path = '/'.join((path_to_repos, repo))
@@ -34,18 +93,31 @@ def monitor_repo(path_to_repos, repo):
                 msgs.append('New tag %s/%s' % (repo, tag))
     return msgs
 
-def monitor_repos(path_to_repos):
+def discover_repos(path_to_repos):
     dirs = os.listdir(path_to_repos)
+    repos = []
     for d in dirs:
         path = '/'.join((path_to_repos, d, '.git'))
         try:
             os.stat(path)
         except:
             continue
-        msgs = monitor_repo(path_to_repos, d)
+        repos.append(d)
+    return repos
+
+def monitor_repos(path_to_repos):
+    repos = discover_repos(path_to_repos)
+    for repo in repos:
+        msgs = monitor_repo(path_to_repos, repo)
         if len(msgs) > 0:
             for msg in msgs:
                 print msg
+
+def monitor_repos_after_delay(path_to_repos, delay):
+    timer = threading.Timer(delay, monitor_repos)
+    timer.start()
+    while timer.isAlive():
+        time.sleep(1)
 
 if __name__ == "__main__":
     import sys
