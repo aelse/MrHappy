@@ -24,6 +24,13 @@ class RollForIt(BotPlugin):
         except:
             self.max_roll = 100
 
+    def teardown(self):
+        if self.timer:
+            self.timer.cancel()
+            if self.timer.isActive():
+                logging.warning('Could not cancel roll timer')
+            self.timer = None
+
     def command_roll(self, bot, e, command, args, channel, nick):
         # Private request for a new roll is invalid
         if not channel and not self.timer:
