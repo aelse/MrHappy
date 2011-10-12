@@ -71,7 +71,7 @@ class MrHappyBot(SingleServerIRCBot):
 
     def setup_plugins(self):
         for p in self.plugins:
-            plugin_config = []
+            plugin_config = {}
             section_name = 'plugin_' + p.module_barename
             try:
                 plugin_config = self.conf[section_name]
