@@ -115,9 +115,10 @@ class MrHappyBot(SingleServerIRCBot):
     def on_pubmsg(self, c, e):
         debug('Received public message')
         from_nick = nm_to_n(e.source())
-        a = string.split(e.arguments()[0], ":", 1)
-        if len(a) > 1 and irc_lower(a[0]) == irc_lower(self.nickname):
-            self.do_command(e, string.strip(a[1]), string.strip(from_nick))
+        m = re.match('%s[:,](.*)' % self.nickname, e.arguments()[0], re.IGNORECASE)
+        if m:
+            cmd = m.groups()[0]
+            self.do_command(e, string.strip(cmd), string.strip(from_nick))
 
     def say_public(self, channel, text):
         "Print TEXT into public channel, for all to see."
