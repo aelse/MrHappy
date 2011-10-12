@@ -64,6 +64,7 @@ class GitRepoMonitor(BotPlugin):
 
 
 def monitor_repo(path_to_repos, repo):
+    repo_name = re.sub('.git', '', repo)
     path = '/'.join((path_to_repos, repo))
     os.chdir(path)
     msgs = []
@@ -80,17 +81,17 @@ def monitor_repo(path_to_repos, repo):
                 gitlog = subprocess.Popen(
                     ['git', 'log', commit, '--pretty=format:%s (%an)'],
                     stdout=subprocess.PIPE).communicate()[0]
-                msgs.append('New commits in %s/%s:' % (repo, branch))
+                msgs.append('New commits in %s/%s:' % (repo_name, branch))
                 for msg in gitlog.split('\n'):
                     msgs.append(' * ' + msg)
             m = re.search('\[new branch\]\s+(\S+)', line)
             if m: # a new branch
                 branch = m.groups()[0]
-                msgs.append('New branch %s/%s' % (repo, branch))
+                msgs.append('New branch %s/%s' % (repo_name, branch))
             m = re.search('\[new tag\]\s+(\S+)', line)
             if m: # a new tag
                 tag = m.groups()[0]
-                msgs.append('New tag %s/%s' % (repo, tag))
+                msgs.append('New tag %s/%s' % (repo_name, tag))
     return msgs
 
 def discover_repos(path_to_repos):
