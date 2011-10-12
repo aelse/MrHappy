@@ -49,7 +49,6 @@ class GitRepoMonitor(BotPlugin):
             self.timer = None
 
     def notify_channel_of_changes(self):
-        logging.info('Checking for changes in git repositories.')
         if self.git_repos and self.notify_channel:
             logging.info('Checking for changes in git repositories.')
             repos = discover_repos(self.git_repos)
