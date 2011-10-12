@@ -23,14 +23,17 @@ class GitRepoMonitor(BotPlugin):
         self.bot = bot
         if options.has_key('git_repos'):
             self.git_repos = options['git_repos']
+            logging.info('Monitoring git repositories under %s' % self.git_repos)
         if options.has_key('git_fetch_interval'):
             try:
                 fetch_interval = int(options['git_fetch_interval'])
                 self.git_fetch_interval = fetch_interval
+                logging.info('Checking at %d second intervals.' % self.git_fetch_interval)
             except:
                 pass
         if options.has_key('notify_channel'):
             self.notify_channel = options['notify_channel']
+            logging.info('Sending notifications to %s' % self.notify_channel)
 
         if not self.timer and self.git_fetch_interval:
             logging.info('Setting git monitor timer to %d seconds.' % self.git_fetch_interval)
