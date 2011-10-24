@@ -63,6 +63,12 @@ class MrHappyBot(SingleServerIRCBot):
         self.join_channels = channels
         self.plugins = []
 
+    def shutdown(self, reason):
+        plugins = list(self.plugins)
+        for p in plugins:
+            self.unload_plugin(p)
+        self.connection.quit(reason)
+
     def load_modules(self):
         modules = discover_modules(self.conf['plugindir'])
         for m in modules:
@@ -311,10 +317,10 @@ def main():
         bot.start()
     except KeyboardInterrupt:
         info('Received ctrl-c')
-        bot.connection.quit("Terminating")
+        bot.shutdown("Terminating")
     except Exception, e:
         logging.exception(e)
-        bot.connection.quit("Exception")
+        bot.shutdown("Exception")
         return 1
 
     return 0
