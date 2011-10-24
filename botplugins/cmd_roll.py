@@ -34,7 +34,7 @@ class RollForIt(BotPlugin):
     def command_roll(self, bot, e, command, args, channel, nick):
         # Private request for a new roll is invalid
         if not channel and not self.timer:
-            bot.say_private(nick, 'Roll in a channel', nick)
+            bot.say_private(nick, 'Roll in a channel')
             return
 
         # Request for a roll while a roll is going
