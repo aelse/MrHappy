@@ -113,7 +113,7 @@ class MrHappyBot(SingleServerIRCBot):
         if not self.cfusers.has_key(uid):
             try:
                 u = self.connection.connection.user(uid)
-                self.cfusers[uid] = u['name']
+                self.cfusers[uid] = u['user']['name']
             except:
                 pass
 
