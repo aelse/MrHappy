@@ -53,15 +53,83 @@ conf = {
     }
 }
 
+from pinder import Campfire
+class CampfireConnection():
+    connection = None
+
+    def __init__(self, subdomain, token):
+        self.connection = Campfire(subdomain, token)
+        self.room = self.connection.find_room_by_name('testchan')
+        self.room.join()
+
+    def privmsg(self, target, msg):
+        self.room.speak(msg)
+
+    def quit(self, reason):
+        self.room.speak('Quitting: %s' % reason)
+        self.room.leave()
+
+# construct event object for campfire messages to simulate functionality
+# of the IRC module.
+class CampfireEvent():
+    def __init__(self, msg):
+        self.msg = msg
+
+    def arguments(self):
+        return [ self.msg ]
+
+    def eventtype(self):
+        return 'pubmsg'
+
+    def target(self):
+        return 'notnone'
+
+
 class MrHappyBot(SingleServerIRCBot):
     def __init__(self, server, channels, nick, name, nickpass=None, recon=60):
-        SingleServerIRCBot.__init__(self, [server], nick, name, recon)
+        #SingleServerIRCBot.__init__(self, [server], nick, name, recon)
+        #self.queue = botcommon.OutputManager(self.connection, .2)
+        token = '3970af88de9a269a9cc5b5d14729bde0217edb6a'
+        self.connection = CampfireConnection('bpl', token)
         self.queue = botcommon.OutputManager(self.connection, .2)
         self.queue.start()
         self.nickname = nick
         self.name = name
         self.join_channels = channels
         self.plugins = []
+
+        self.cfusers = {}
+
+    def start(self):
+        self.connection.room.listen(self.handle_msg, self.ex_handler)
+
+    def handle_msg(self, msg):
+        if msg['body'] is None:
+            print 'nothing to do'
+            return
+        print 'body: %s' % msg['body']
+        e = CampfireEvent(msg['body'])
+        uid = msg['user_id']
+        if not self.cfusers.has_key(uid):
+            try:
+                u = self.connection.connection.user(uid)
+                self.cfusers[uid] = u['name']
+            except:
+                pass
+
+        try:
+            from_nick = self.cfusers[uid]
+        except:
+            print 'Could not get nick'
+            from_nick = 'Oops'
+
+        m = re.match('%s[:,](.*)' % self.nickname, e.arguments()[0], re.IGNORECASE)
+        if m:
+            cmd = m.groups()[0]
+            self.do_command(e, string.strip(cmd), string.strip(from_nick))
+
+    def ex_handler(self, ex):
+        self.shutdown('Exception %s' % ex)
 
     def shutdown(self, reason):
         plugins = list(self.plugins)
@@ -211,7 +279,6 @@ def process_config(filename):
     from ConfigParser import SafeConfigParser
     global conf
     debug('Using configuration file %s' % filename)
-
     parser = SafeConfigParser()
     parser.read(filename)
 
