@@ -105,9 +105,7 @@ class MrHappyBot(SingleServerIRCBot):
 
     def handle_msg(self, msg):
         if msg['body'] is None:
-            print 'nothing to do'
             return
-        print 'body: %s' % msg['body']
         e = CampfireEvent(msg['body'])
         uid = msg['user_id']
         if not self.cfusers.has_key(uid):
