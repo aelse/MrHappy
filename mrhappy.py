@@ -59,7 +59,7 @@ class CampfireConnection():
 
     def __init__(self, subdomain, token):
         self.connection = Campfire(subdomain, token)
-        self.room = self.connection.find_room_by_name('testchan')
+        self.room = self.connection.find_room_by_name('BigPond Live')
         self.room.join()
 
     def privmsg(self, target, msg):
