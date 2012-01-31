@@ -56,11 +56,19 @@ conf = {
 from pinder import Campfire
 class CampfireConnection():
     connection = None
+    subdomain = None
+    token = None
+
+    def connect(self):
+        self.connection = Campfire(self.subdomain, self.token)
+        self.room = self.connection.find_room_by_name('BigPond Live')
+        #self.room = self.connection.find_room_by_name('testchan')
+        self.room.join()
 
     def __init__(self, subdomain, token):
-        self.connection = Campfire(subdomain, token)
-        self.room = self.connection.find_room_by_name('BigPond Live')
-        self.room.join()
+        self.subdomain = subdomain
+        self.token = token
+        self.connect()
 
     def privmsg(self, target, msg):
         self.room.speak(msg)
@@ -121,13 +129,21 @@ class MrHappyBot(SingleServerIRCBot):
             print 'Could not get nick'
             from_nick = 'Oops'
 
+        info('Received from %s: %s' % (from_nick, msg['body']))
         m = re.match('%s[:,](.*)' % self.nickname, e.arguments()[0], re.IGNORECASE)
         if m:
             cmd = m.groups()[0]
+            info('Command: %s' % cmd)
             self.do_command(e, string.strip(cmd), string.strip(from_nick))
 
     def ex_handler(self, ex):
-        self.shutdown('Exception %s' % ex)
+        #self.shutdown('Exception %s' % ex)
+        info('Exception %s' % ex)
+        self.connection.connect()
+        self.room.speak('Exception: %s' % ex)
+        self.room.speak('Please let me live!');
+        self.room.join()
+        return
 
     def shutdown(self, reason):
         plugins = list(self.plugins)
@@ -377,16 +393,19 @@ def main():
         bot.load_modules()
         bot.setup_plugins()
 
-    try:
-        info('Starting Bot')
-        bot.start()
-    except KeyboardInterrupt:
-        info('Received ctrl-c')
-        bot.shutdown("Terminating")
-    except Exception, e:
-        logging.exception(e)
-        bot.shutdown("Exception")
-        return 1
+    while True:
+        try:
+            info('Starting Bot')
+            bot.start()
+        except KeyboardInterrupt:
+            info('Received ctrl-c')
+            bot.shutdown("Terminating")
+        except Exception, e:
+            logging.exception(e)
+            #bot.shutdown("Exception")
+            #return 1
+            import time
+            time.sleep(3)
 
     return 0
 
