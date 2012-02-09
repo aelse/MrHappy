@@ -5,16 +5,38 @@ from BeautifulSoup import BeautifulSoup
 class CommandTime(BotPlugin):
 
     def command_weather(self, bot, e, command, args, channel, nick):
-        bot.reply(forecast('sydney'), channel, nick, paste=True)
+        city = 'sydney'
+        if len(args):
+            city = args.lower()
+        bot.reply(forecast(city), channel, nick, paste=True)
+
+def get_forecast_url(city):
+    urls = {
+        'brisbane': 'qld',
+        'sydney': 'nsw',
+    }
+    try:
+        return 'http://www.bom.gov.au/%s/forecasts/%s.shtml' % (urls[city], city)
+    except KeyError:
+        return None
+    return None
 
 def forecast(city):
-    url = 'http://www.bom.gov.au/nsw/forecasts/%s.shtml' % city
+    url = get_forecast_url(city)
+    if url is None:
+        return 'Do not know how to get forecast for %s' % city.capitalize()
+
     w = urllib.urlopen(url)
     html = w.read()
     w.close()
 
-    output = ''
     soup = BeautifulSoup(html)
+
+    today = soup.find('div', {'class': 'day main'})
+    maxtemp = today.find('em', {'class': 'max'}).getString()
+    fc = today.find('p').getString()
+    output = 'Today: (max %s)\n%s\n\n' % (maxtemp, fc)
+
     days = soup.findAll('div', {'class': 'day'})
 
     for day in days:
