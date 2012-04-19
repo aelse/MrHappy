@@ -70,8 +70,11 @@ class CampfireConnection():
         self.token = token
         self.connect()
 
-    def privmsg(self, target, msg):
-        self.room.speak(msg)
+    def privmsg(self, target, msg, paste):
+        if paste:
+            self.room.paste(msg)
+        else:
+            self.room.speak(msg)
 
     def quit(self, reason):
         self.room.speak('Quitting: %s' % reason)
@@ -208,22 +211,22 @@ class MrHappyBot(SingleServerIRCBot):
             cmd = m.groups()[0]
             self.do_command(e, string.strip(cmd), string.strip(from_nick))
 
-    def say_public(self, channel, text):
+    def say_public(self, channel, text, paste=False):
         "Print TEXT into public channel, for all to see."
         debug('Sending public: %s' % text)
-        self.queue.send(text, channel)
+        self.queue.send(text, channel, paste)
 
-    def say_private(self, nick, text):
+    def say_private(self, nick, text, paste=False):
         "Send private message of TEXT to NICK."
         debug('Sending private to %s: %s' % (nick, text))
-        self.queue.send(text, nick)
+        self.queue.send(text, nick, paste)
 
-    def reply(self, text, to_channel, to_private=None):
+    def reply(self, text, to_channel, to_private=None, paste=False):
         "Send TEXT to either public channel or TO_PRIVATE nick (if defined)."
         if to_channel is not None:
-            self.say_public(to_channel, text)
+            self.say_public(to_channel, text, paste)
         elif to_private is not None:
-            self.say_private(to_private, text)
+            self.say_private(to_private, text, paste)
         else:
             warn('Trying to send a message without channel or nick')
 

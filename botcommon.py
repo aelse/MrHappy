@@ -21,13 +21,13 @@ class OutputManager(Thread):
     while 1:
       self.event.wait()
       while self.queue:
-        msg,target = self.queue.pop(0)
-        self.connection.privmsg(target, msg)
+        msg,target,paste = self.queue.pop(0)
+        self.connection.privmsg(target, msg, paste)
         time.sleep(self.delay)
       self.event.clear()
 
-  def send(self, msg, target):
-    self.queue.append((msg.strip(),target))
+  def send(self, msg, target, paste):
+    self.queue.append((msg.strip(),target,paste))
     self.event.set()
 
 
