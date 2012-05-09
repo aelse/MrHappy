@@ -71,13 +71,19 @@ class CampfireConnection():
         self.connect()
 
     def privmsg(self, target, msg, paste):
-        if paste:
-            self.room.paste(msg)
-        else:
-            self.room.speak(msg)
+        try:
+            if paste:
+                self.room.paste(msg)
+            else:
+                self.room.speak(msg)
+        except:
+            print 'Oh no, caught an exception talking to the room'
 
     def quit(self, reason):
-        self.room.speak('Quitting: %s' % reason)
+        try:
+            self.room.speak('Quitting: %s' % reason)
+        except:
+            print 'Oh no, caught an exception talking to the room'
         self.room.leave()
 
 # construct event object for campfire messages to simulate functionality
@@ -143,9 +149,16 @@ class MrHappyBot(SingleServerIRCBot):
         #self.shutdown('Exception %s' % ex)
         info('Exception %s' % ex)
         self.connection.connect()
-        self.room.speak('Exception: %s' % ex)
-        self.room.speak('Please let me live!');
-        self.room.join()
+        try:
+            self.room.speak('Exception: %s' % ex)
+            self.room.speak('Please let me live!');
+            self.room.join()
+        except:
+            print 'Oh no, caught an exception talking to the room'
+        try:
+            self.room.join()
+        except:
+            print 'Oh no, caught an exception joining the room'
         return
 
     def shutdown(self, reason):
