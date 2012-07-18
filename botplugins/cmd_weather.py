@@ -14,6 +14,8 @@ def get_forecast_url(city):
     urls = {
         'brisbane': 'qld',
         'sydney': 'nsw',
+        'melbourne': 'vic',
+        'adelaide': 'sa',
     }
     try:
         return 'http://www.bom.gov.au/%s/forecasts/%s.shtml' % (urls[city], city)
