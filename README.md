@@ -4,8 +4,10 @@ MrHappy
 Synopsis
 --------
 
-MrHappy is an IRC bot written in python. It is intended to be a
-useful tool to software developers and devops.
+MrHappy is a Campfire bot written in python. It is intended to be a
+useful tool to software developers and devops. It started life as
+an IRC bot, and this still shows in some of the code, but the
+advantages of Campfire for group work lead to the switch.
 
 Bot functionality can be extended with plugins. Plugins exist
 to perform such tasks as notification of changes to git repositories
@@ -53,7 +55,7 @@ class found in botplugins/botplugin.py
 The simplest plugin to add is a simple command that MrHappy will run
 when asked privately or in channel. An exchange may look like:
 
-    (ircuser) MrHappy: say hello
+    (Campfire user) MrHappy: say hello
     (MrHappy) hello
 
 The code for this is in botplugins/cmd_say.py
