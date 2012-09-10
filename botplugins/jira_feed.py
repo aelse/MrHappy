@@ -123,25 +123,23 @@ def stringify_soup(x):
     else:
         return ''
 
+
 def feed_entry_string(entry):
     td = BeautifulSoup(entry.title_detail.value)
-    # DDEBUG
+    td_str = ' '.join(map(stringify_soup, td.contents))
+
+    # Attempt to find a link to the ticket
+    # This may be the first classless html 'a' tag
+    url = ''
     try:
-        td_str = ' '.join(map(stringify_soup, td.contents))
+        h = td.find("a", {"class": None})
+        if h:
+            url = h.__dict__['attrMap']['href']
     except:
-        import sys
-        for x in td.contents:
-            print type(x)
-            print dir(x)
-            print '---'
-            print str(x)
-            print '==='
-            print x.text
-            print '***'
-        sys.exit(0)
+        pass
     summary = BeautifulSoup(entry.summary)
     summary_str = summary.text
-    s = '%s: %s' % (td_str, summary_str)
+    s = ' : '.join([td_str, summary_str, url])
     return s
 
 def check_feed(url, username, password):
