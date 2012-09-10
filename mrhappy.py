@@ -106,8 +106,8 @@ class MrHappyBot(SingleServerIRCBot):
     def __init__(self, server, channels, nick, name, nickpass=None, recon=60):
         #SingleServerIRCBot.__init__(self, [server], nick, name, recon)
         #self.queue = botcommon.OutputManager(self.connection, .2)
-        token = '3970af88de9a269a9cc5b5d14729bde0217edb6a'
-        self.connection = CampfireConnection('bpl', token)
+        token = 'your token here'
+        self.connection = CampfireConnection('your prefix here', token)
         self.queue = botcommon.OutputManager(self.connection, .2)
         self.queue.start()
         self.nickname = nick
