@@ -104,8 +104,6 @@ class CampfireEvent():
 
 class MrHappyBot(SingleServerIRCBot):
     def __init__(self, server, channels, nick, name, nickpass=None, recon=60):
-        #SingleServerIRCBot.__init__(self, [server], nick, name, recon)
-        #self.queue = botcommon.OutputManager(self.connection, .2)
         token = 'your token here'
         self.connection = CampfireConnection('your prefix here', token)
         self.queue = botcommon.OutputManager(self.connection, .2)
