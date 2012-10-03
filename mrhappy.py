@@ -28,8 +28,6 @@ import logging
 from logging import debug, info, warn, error
 import re
 
-from ircbot import SingleServerIRCBot
-from irclib import nm_to_n, irc_lower
 import botcommon
 from botplugins.botplugin import BotPlugin
 from pprint import PrettyPrinter
@@ -49,8 +47,6 @@ conf = {
         'host': 'localhost',
         'port': '6667',
     },
-    'Channel': {
-    }
 }
 
 from pinder import Campfire
@@ -58,16 +54,18 @@ class CampfireConnection():
     connection = None
     subdomain = None
     token = None
+    room_name = None
+    room = None
 
     def connect(self):
         self.connection = Campfire(self.subdomain, self.token)
-        self.room = self.connection.find_room_by_name('BigPond Live')
-        #self.room = self.connection.find_room_by_name('testchan')
+        self.room = self.connection.find_room_by_name(self.room_name)
         self.room.join()
 
-    def __init__(self, subdomain, token):
+    def __init__(self, subdomain, token, room_name):
         self.subdomain = subdomain
         self.token = token
+        self.room_name = room_name
         self.connect()
 
     def privmsg(self, target, msg, paste):
@@ -102,15 +100,14 @@ class CampfireEvent():
         return 'notnone'
 
 
-class MrHappyBot(SingleServerIRCBot):
-    def __init__(self, server, channels, nick, name, nickpass=None, recon=60):
+class MrHappyBot(object):
+    def __init__(self, campfire_prefix, room, nick, name, nickpass=None, recon=60):
         token = 'your token here'
-        self.connection = CampfireConnection('your prefix here', token)
+        self.connection = CampfireConnection(campfire_prefix, token, room)
         self.queue = botcommon.OutputManager(self.connection, .2)
         self.queue.start()
         self.nickname = nick
         self.name = name
-        self.join_channels = channels
         self.plugins = []
 
         self.cfusers = {}
@@ -211,12 +208,12 @@ class MrHappyBot(SingleServerIRCBot):
 
     def on_privmsg(self, c, e):
         debug('Received private message')
-        from_nick = nm_to_n(e.source())
+        from_nick = e.source()
         self.do_command(e, string.strip(e.arguments()[0]), string.strip(from_nick))
 
     def on_pubmsg(self, c, e):
         debug('Received public message')
-        from_nick = nm_to_n(e.source())
+        from_nick = e.source()
         m = re.match('%s[:,](.*)' % self.nickname, e.arguments()[0], re.IGNORECASE)
         if m:
             cmd = m.groups()[0]
@@ -330,18 +327,16 @@ def gen_config(load_plugins):
     config.set('General', 'nickpass', 'mypass')
     config.add_section('Server')
     config.set('Server', 'host', 'localhost')
-    config.set('Server', 'port', '6667')
     config.set('Server', 'retry_interval', '60')
-    config.add_section('Channel')
-    config.set('Channel', 'a', '#MrHappy\'s_Wild_Ride')
-    config.set('Channel', 'b', '#testchan')
+    config.set('Server', 'campfire_prefix', 'mrhappy')
+    config.set('Server', 'room', 'MrHappy')
 
     if load_plugins:
         # bot not yet created as we have not read its configuration.
         # Instantiate a bot with skeleton config and load plugins
         global conf
         server = (conf['Server']['host'], int(conf['Server']['port']))
-        bot = MrHappyBot(server, [], conf['General']['nick'], conf['General']['name'])
+        bot = MrHappyBot(conf['Server']['campfire_prefix'], conf['Server']['room'], conf['General']['nick'], conf['General']['name'])
         bot.conf = conf
 
         bot.load_modules()
@@ -399,8 +394,7 @@ def main():
     process_config(options.config_file)
 
     server = (conf['Server']['host'], int(conf['Server']['port']))
-    channels = conf['Channel'].values()
-    bot = MrHappyBot(server, channels, conf['General']['nick'], conf['General']['name'])
+    bot = MrHappyBot(conf['Server']['campfire_prefix'], conf['Server']['room'], conf['General']['nick'], conf['General']['name'])
     bot.conf = conf
 
     if options.load_plugins:
