@@ -101,8 +101,7 @@ class CampfireEvent():
 
 
 class MrHappyBot(object):
-    def __init__(self, campfire_prefix, room, nick, name, nickpass=None, recon=60):
-        token = 'your token here'
+    def __init__(self, token, campfire_prefix, room, nick, name, nickpass=None, recon=60):
         self.connection = CampfireConnection(campfire_prefix, token, room)
         self.queue = botcommon.OutputManager(self.connection, .2)
         self.queue.start()
@@ -329,6 +328,7 @@ def gen_config(load_plugins):
     config.set('Server', 'host', 'localhost')
     config.set('Server', 'retry_interval', '60')
     config.set('Server', 'campfire_prefix', 'mrhappy')
+    config.set('Server', 'token', 'your token here')
     config.set('Server', 'room', 'MrHappy')
 
     if load_plugins:
@@ -336,7 +336,7 @@ def gen_config(load_plugins):
         # Instantiate a bot with skeleton config and load plugins
         global conf
         server = (conf['Server']['host'], int(conf['Server']['port']))
-        bot = MrHappyBot(conf['Server']['campfire_prefix'], conf['Server']['room'], conf['General']['nick'], conf['General']['name'])
+        bot = MrHappyBot(conf['Server']['token'], conf['Server']['campfire_prefix'], conf['Server']['room'], conf['General']['nick'], conf['General']['name'])
         bot.conf = conf
 
         bot.load_modules()
@@ -394,7 +394,7 @@ def main():
     process_config(options.config_file)
 
     server = (conf['Server']['host'], int(conf['Server']['port']))
-    bot = MrHappyBot(conf['Server']['campfire_prefix'], conf['Server']['room'], conf['General']['nick'], conf['General']['name'])
+    bot = MrHappyBot(conf['Server']['token'], conf['Server']['campfire_prefix'], conf['Server']['room'], conf['General']['nick'], conf['General']['name'])
     bot.conf = conf
 
     if options.load_plugins:
