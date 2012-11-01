@@ -26,6 +26,7 @@ import sys
 import string
 import logging
 from logging import debug, info, warn, error
+import multiprocessing
 import re
 
 import botcommon
@@ -380,6 +381,33 @@ def discover_modules(directory):
     return modules
 
 
+def run_bot(conf, options):
+    bot = MrHappyBot(conf['Server']['token'],
+                     conf['Server']['campfire_prefix'],
+                     conf['Server']['room'],
+                     conf['General']['nick'],
+                     conf['General']['name'])
+    bot.conf = conf
+
+    if options.load_plugins:
+        bot.load_modules()
+        bot.setup_plugins()
+
+    try:
+        info('Starting Bot')
+        bot.start()
+    except KeyboardInterrupt:
+        info('Received ctrl-c')
+        bot.shutdown()
+        return 0
+    except Exception, e:
+        logging.exception(e)
+        bot.shutdown()
+        return 1
+
+    return 0
+
+
 def main():
     global conf
     loglevel = getattr(logging, 'WARNING')
@@ -412,30 +440,22 @@ def main():
         return 1
     process_config(options.config_file)
 
-    bot = MrHappyBot(conf['Server']['token'],
-                     conf['Server']['campfire_prefix'],
-                     conf['Server']['room'],
-                     conf['General']['nick'],
-                     conf['General']['name'])
-    bot.conf = conf
-
-    if options.load_plugins:
-        bot.load_modules()
-        bot.setup_plugins()
-
-    try:
-        info('Starting Bot')
-        bot.start()
-    except KeyboardInterrupt:
-        info('Received ctrl-c')
-        bot.shutdown()
-        return 1
-    except Exception, e:
-        logging.exception(e)
-        bot.shutdown()
-        return 1
+    keep_running = True
+    while keep_running:
+        print 'Starting campfire process'
+        p = multiprocessing.Process(target=run_bot, args=(conf, options,))
+        p.start()
+        p.join()
+        if p.exitcode == 1:
+            keep_running = False
+            print 'Not restarting campfire process'
+        else:
+            import time
+            time.sleep(3)
+    print 'Terminating'
 
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())
