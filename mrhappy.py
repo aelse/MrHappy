@@ -348,7 +348,6 @@ def gen_config(load_plugins):
         # bot not yet created as we have not read its configuration.
         # Instantiate a bot with skeleton config and load plugins
         global conf
-        server = (conf['Server']['host'], int(conf['Server']['port']))
         bot = MrHappyBot(conf['Server']['token'],
                          conf['Server']['campfire_prefix'],
                          conf['Server']['room'],
@@ -413,7 +412,6 @@ def main():
         return 1
     process_config(options.config_file)
 
-    server = (conf['Server']['host'], int(conf['Server']['port']))
     bot = MrHappyBot(conf['Server']['token'],
                      conf['Server']['campfire_prefix'],
                      conf['Server']['room'],
