@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
-# MrHappy is an IRC bot.
-# Copyright Alexander Else, 2011.
+# MrHappy is a Campfire bot.
+# Copyright Alexander Else, 2011-2012.
 #
 # This file is part of MrHappy.
 #
