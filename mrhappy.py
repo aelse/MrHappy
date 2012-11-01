@@ -80,10 +80,11 @@ class CampfireConnection():
             print 'Oh no, caught an exception talking to the room'
 
     def quit(self, reason):
-        try:
-            self.room.speak('Quitting: %s' % reason)
-        except:
-            print 'Oh no, caught an exception talking to the room'
+        if reason:
+            try:
+                self.room.speak('Quitting: %s' % reason)
+            except:
+                print 'Oh no, caught an exception talking to the room'
         self.room.leave()
 
 
@@ -160,7 +161,7 @@ class MrHappyBot(object):
             print 'Oh no, caught an exception joining the room'
         return
 
-    def shutdown(self, reason):
+    def shutdown(self, reason=None):
         plugins = list(self.plugins)
         for p in plugins:
             self.unload_plugin(p)
@@ -430,14 +431,12 @@ def main():
             bot.start()
         except KeyboardInterrupt:
             info('Received ctrl-c')
-            bot.shutdown("Terminating")
-
+            bot.shutdown()
+            return 1
         except Exception, e:
             logging.exception(e)
-            #bot.shutdown("Exception")
-            #return 1
-            import time
-            time.sleep(3)
+            bot.shutdown()
+            return 1
 
     return 0
 
