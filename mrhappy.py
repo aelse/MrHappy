@@ -425,18 +425,17 @@ def main():
         bot.load_modules()
         bot.setup_plugins()
 
-    while True:
-        try:
-            info('Starting Bot')
-            bot.start()
-        except KeyboardInterrupt:
-            info('Received ctrl-c')
-            bot.shutdown()
-            return 1
-        except Exception, e:
-            logging.exception(e)
-            bot.shutdown()
-            return 1
+    try:
+        info('Starting Bot')
+        bot.start()
+    except KeyboardInterrupt:
+        info('Received ctrl-c')
+        bot.shutdown()
+        return 1
+    except Exception, e:
+        logging.exception(e)
+        bot.shutdown()
+        return 1
 
     return 0
 
