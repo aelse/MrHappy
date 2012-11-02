@@ -14,7 +14,6 @@ class ConfluenceFeed(BotPlugin):
 
     timer = None
     git_repos = None
-    notify_channel = None
     fetch_interval = 60
     username = ''
     password = ''
@@ -24,7 +23,6 @@ class ConfluenceFeed(BotPlugin):
         'username': '',
         'password': '',
         'fetch_interval': str(fetch_interval),
-        'notify_channel': '',
     }
 
     def setup(self, bot, options):
@@ -39,9 +37,6 @@ class ConfluenceFeed(BotPlugin):
                 logging.info('Checking at %d second intervals.' % self.fetch_interval)
             except:
                 pass
-        if options.has_key('notify_channel'):
-            self.notify_channel = options['notify_channel']
-            logging.info('Sending notifications to %s' % self.notify_channel)
         if options.has_key('username'):
             self.username = options['username']
         if options.has_key('password'):

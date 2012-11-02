@@ -43,9 +43,9 @@ conf = {
         'name': 'MrHappy, the python bot.',
     },
     'Server': {
-        'campfire_prefix', 'mrhappy',
-        'token', 'your token here',
-        'room', 'MrHappy',
+        'campfire_prefix': 'mrhappy',
+        'token': 'your token here',
+        'room': 'MrHappy',
     },
 }
 
@@ -232,7 +232,6 @@ class MrHappyBot(object):
         Receive command messages.
         """
         debug('Received a command')
-        channel = None
 
         # Guarantee plugins a single space between args
         cmd = re.sub('\s\s+', ' ', cmd.strip())
@@ -254,7 +253,7 @@ class MrHappyBot(object):
                 pass
 
             if f:
-                f(self, command, args, channel, nick)
+                f(self, command, args, nick)
 
     def do_listeners(self, msg):
         """
@@ -306,7 +305,7 @@ def process_config(filename):
     for section in parser.sections():
         for (name, value) in parser.items(section):
             debug('%s => %s = %s' % (section, name, value))
-            if not section in conf:
+            if section not in conf:
                 conf[section] = {}
             conf[section][name] = value
 
@@ -322,8 +321,6 @@ def gen_config(load_plugins):
     config.set('General', 'nick', 'MrHappy')
     config.set('General', 'name', 'MrHappy, the Python bot.')
     config.add_section('Server')
-    config.set('Server', 'host', 'localhost')
-    config.set('Server', 'retry_interval', '60')
     config.set('Server', 'campfire_prefix', 'mrhappy')
     config.set('Server', 'token', 'your token here')
     config.set('Server', 'room', 'MrHappy')

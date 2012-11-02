@@ -12,7 +12,6 @@ class RollForIt(BotPlugin):
 
     def setup(self, bot, options):
         self.timer = None
-        self.channel = ''
         self.rollers = []
         self.bot = bot
         try:
@@ -31,14 +30,9 @@ class RollForIt(BotPlugin):
                 logging.warning('Could not cancel roll timer')
             self.timer = None
 
-    def command_roll(self, bot, command, args, channel, nick):
-        # Private request for a new roll is invalid
-        if not channel and not self.timer:
-            bot.speak('Roll in a channel')
-            return
-
+    def command_roll(self, bot, command, args, nick):
         # Request for a roll while a roll is going
-        if self.timer and channel != self.channel:
+        if self.timer:
             bot.speak('Resolving current roll. Try again in %d seconds.' % self.roll_delay)
             return
 
@@ -47,7 +41,6 @@ class RollForIt(BotPlugin):
             logging.debug('%s started a roll.' % nick)
             bot.speak('Starting a new roll. Do \'/msg %s roll\' to join.' % bot.nickname)
             bot.speak('Roll resolves in %d seconds.' % self.roll_delay)
-            self.channel = channel
             self.rollers = [nick]
             self.timer = threading.Timer(self.roll_delay, self.perform_roll)
             self.timer.start()
@@ -66,7 +59,7 @@ class RollForIt(BotPlugin):
         tie_breaker = False
         for roller in self.rollers:
             my_roll = random.randint(1, self.max_roll)
-            self.bot.speak(self.channel, '%s rolls %d.' % (roller, my_roll))
+            self.bot.speak('%s rolls %d.' % (roller, my_roll))
             if my_roll > big_roll:
                 big_roll = my_roll
                 big_roller = roller

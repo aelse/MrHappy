@@ -10,13 +10,11 @@ class GitRepoMonitor(BotPlugin):
 
     timer = None
     git_repos = None
-    notify_channel = None
     git_fetch_interval = 60
 
     config_options = {
         'git_repos': '/path/to/git/repos',
         'git_fetch_interval': str(git_fetch_interval),
-        'notify_channel': '',
     }
 
     def setup(self, bot, options):
@@ -31,10 +29,6 @@ class GitRepoMonitor(BotPlugin):
                 logging.info('Checking at %d second intervals.' % self.git_fetch_interval)
             except:
                 pass
-        if options.has_key('notify_channel'):
-            self.notify_channel = options['notify_channel']
-            logging.info('Sending notifications to %s' % self.notify_channel)
-
         if not self.timer and self.git_fetch_interval:
             logging.info('Setting git monitor timer to %d seconds.' % self.git_fetch_interval)
             self.timer = threading.Timer(self.git_fetch_interval, self.notify_channel_of_changes)
@@ -49,7 +43,7 @@ class GitRepoMonitor(BotPlugin):
             self.timer = None
 
     def notify_channel_of_changes(self):
-        if self.git_repos and self.notify_channel:
+        if self.git_repos:
             logging.info('Checking for changes in git repositories.')
             repos = discover_repos(self.git_repos)
             for repo in repos:
