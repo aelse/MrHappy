@@ -31,7 +31,6 @@ from threading import Thread, Event
 import multiprocessing
 import re
 
-from botplugins.botplugin import BotPlugin
 from pprint import PrettyPrinter
 
 from pinder import Campfire
@@ -197,6 +196,7 @@ class MrHappyBot(object):
             p.setup(self, plugin_config)
 
     def load_plugin(self, modname):
+        from botplugins.botplugin import BotPlugin
         debug('Inspecting %s' % modname)
         plugin = __import__(modname)
         d = plugin.__dict__
