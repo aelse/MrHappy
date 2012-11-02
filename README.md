@@ -67,14 +67,12 @@ Example
     import re
     from botplugin import BotPlugin
 
-
     class MyListener(BotPlugin):
 
         def listen(self, bot, message):
             if message[u'type'] != u'TextMessage':
                 return
-
-            bot.reply('Received: ' + message['body'], '', '')
+            bot.speak('Received: ' + message['body'])
 
 Commands
 ========
@@ -93,9 +91,8 @@ An implementation of the exchange above might look like:
 
     from botplugin import BotPlugin
 
-
     class Speak(BotPlugin):
 
         def command_say(self, bot, e, command, args, nick):
-            bot.reply('You told me to say: ' + args, '', '')
+            bot.speak('%s told me to say: %s' % (nick, args))
 
