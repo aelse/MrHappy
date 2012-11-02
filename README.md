@@ -93,6 +93,6 @@ An implementation of the exchange above might look like:
 
     class Speak(BotPlugin):
 
-        def command_say(self, bot, e, command, args, nick):
+        def command_say(self, bot, command, args, nick):
             bot.speak('%s told me to say: %s' % (nick, args))
 
