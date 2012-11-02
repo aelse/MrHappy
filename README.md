@@ -52,10 +52,48 @@ Most of MrHappy's functionality comes from plugins in the botplugins
 directory. Further plugins may be created by extending the BotPlugin
 class found in botplugins/botplugin.py
 
+These plugins may process commands directed at the bot or can listen
+to all traffic in the channel.
+
+Listeners
+=========
+
+A listener should implement the listen method which will receive
+any campfire events containing a message body.
+
+Example
+
+    import re
+    from botplugin import BotPlugin
+
+
+    class MyListener(BotPlugin):
+
+        def listen(self, bot, e, message):
+            if message[u'type'] != u'TextMessage':
+                return
+
+            bot.reply('Received: ' + message['body'], '', '')
+
+Commands
+========
+
 The simplest plugin to add is a simple command that MrHappy will run
 when asked privately or in channel. An exchange may look like:
 
     (Campfire user) MrHappy: say hello
-    (MrHappy) hello
+    (MrHappy) You told me to say: hello
 
-The code for this is in botplugins/cmd_say.py
+The command plugin should implement a method named command_<cmd> where
+cmd is the in-chat text that should invoke the command.
+
+An implementation of the exchange above might look like:
+
+    from botplugin import BotPlugin
+
+
+    class Speak(BotPlugin):
+
+        def command_say(self, bot, e, command, args, channel, nick):
+            bot.reply('You told me to say: ' + args, '', '')
+
