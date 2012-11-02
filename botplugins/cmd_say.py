@@ -1,5 +1,4 @@
 from botplugin import BotPlugin
-import time
 
 class Speak(BotPlugin):
 
