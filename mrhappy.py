@@ -31,8 +31,6 @@ from threading import Thread, Event
 import multiprocessing
 import re
 
-from pprint import PrettyPrinter
-
 from pinder import Campfire
 
 version = "0.1"
