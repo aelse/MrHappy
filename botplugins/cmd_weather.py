@@ -8,7 +8,7 @@ class CommandTime(BotPlugin):
         city = 'sydney'
         if len(args):
             city = args.lower()
-        bot.reply(forecast(city), channel, nick, paste=True)
+        bot.speak(forecast(city), paste=True)
 
 def get_forecast_url(city):
     urls = {

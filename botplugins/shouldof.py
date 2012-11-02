@@ -18,4 +18,4 @@ class ShouldOf(BotPlugin):
             if b is None:
                 b = ''
             correction = '*' + a + b + " have"
-            bot.reply(correction, '', '')
+            bot.speak(correction)

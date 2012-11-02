@@ -19,10 +19,8 @@ class DNS(BotPlugin):
                 path=self.repo_path, git='git pull',
                 cmd='python zone-updater -f'))
             if result == 0:
-                bot.reply('Updated dynamic dns.', channel, nick)
+                bot.speak('Updated dynamic dns.')
             else:
-                bot.reply('Got an error updating dynamic dns.',
-                    channel, nick)
+                bot.speak('Got an error updating dynamic dns.')
         else:
-            bot.reply('dns update - update the dynamic zone',
-                channel, nick)
+            bot.speak('dns update - update the dynamic zone')

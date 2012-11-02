@@ -34,29 +34,29 @@ class RollForIt(BotPlugin):
     def command_roll(self, bot, command, args, channel, nick):
         # Private request for a new roll is invalid
         if not channel and not self.timer:
-            bot.say_private(nick, 'Roll in a channel')
+            bot.speak('Roll in a channel')
             return
 
         # Request for a roll while a roll is going
         if self.timer and channel != self.channel:
-            bot.say_private(nick, 'Resolving current roll. Try again in %d seconds.' % self.roll_delay)
+            bot.speak('Resolving current roll. Try again in %d seconds.' % self.roll_delay)
             return
 
         # Start a new roll
         if not self.timer:
             logging.debug('%s started a roll.' % nick)
-            bot.reply('Starting a new roll. Do \'/msg %s roll\' to join.' % bot.nickname, channel, nick)
-            bot.reply('Roll resolves in %d seconds.' % self.roll_delay, channel, nick)
+            bot.speak('Starting a new roll. Do \'/msg %s roll\' to join.' % bot.nickname)
+            bot.speak('Roll resolves in %d seconds.' % self.roll_delay)
             self.channel = channel
             self.rollers = [nick]
             self.timer = threading.Timer(self.roll_delay, self.perform_roll)
             self.timer.start()
         else:
             if nick in self.rollers:
-                bot.say_private(nick, 'You are already in the roll.')
+                bot.speak('%s is already in the roll.' % nick)
             else:
                 logging.debug('added %s to the roll.' % nick)
-                bot.say_private(nick, 'Adding you to the roll.')
+                bot.speak('Adding %s to the roll.' % nick)
                 self.rollers.append(nick)
 
     def perform_roll(self):
@@ -66,7 +66,7 @@ class RollForIt(BotPlugin):
         tie_breaker = False
         for roller in self.rollers:
             my_roll = random.randint(1, self.max_roll)
-            self.bot.say_public(self.channel, '%s rolls %d.' % (roller, my_roll))
+            self.bot.speak(self.channel, '%s rolls %d.' % (roller, my_roll))
             if my_roll > big_roll:
                 big_roll = my_roll
                 big_roller = roller
@@ -77,6 +77,6 @@ class RollForIt(BotPlugin):
                     big_roller = roller
                     tie_breaker = True
         if tie_breaker:
-            self.bot.say_public(self.channel, 'Winner by tiebreaker is %s.' % big_roller)
+            self.bot.speak('Winner by tiebreaker is %s.' % big_roller)
         else:
-            self.bot.say_public(self.channel, 'Winner is %s.' % big_roller)
+            self.bot.speak('Winner is %s.' % big_roller)

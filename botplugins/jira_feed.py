@@ -69,7 +69,7 @@ class JiraFeed(BotPlugin):
             jira_updates = check_feed(self.jira_feed_url, self.username, self.password)
             for update in jira_updates:
                 logging.debug('JIRA update: %s' % update)
-                self.bot.say_public(self.notify_channel, update)
+                self.bot.speak(update)
         else:
             logging.info('Skipping JIRA feed checks.')
 

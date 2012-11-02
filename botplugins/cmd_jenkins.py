@@ -39,7 +39,7 @@ class Jenkins(BotPlugin):
             cmd, args = arguments, ''
 
         if self.jenkins_url is None and cmd != 'help':
-            bot.reply('No configured jenkins server', channel, nick)
+            bot.speak('No configured jenkins server')
             return
 
         f = None
@@ -53,9 +53,9 @@ class Jenkins(BotPlugin):
             if type(message) == type(''):
                 message = [message]
             for line in message:
-                bot.reply(line, channel, nick)
+                bot.speak(line)
         else:
-            bot.reply('Bad arguments \'%s\'' % (arguments), channel, nick)
+            bot.speak('Bad arguments \'%s\'' % (arguments))
 
     def cmd_help(self, args):
         help = [

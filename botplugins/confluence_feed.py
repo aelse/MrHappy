@@ -69,7 +69,7 @@ class ConfluenceFeed(BotPlugin):
             confluence_updates = check_feed(self.confluence_feed_url, self.username, self.password)
             for update in confluence_updates:
                 logging.debug('Confluence update: %s' % update)
-                self.bot.say_public(self.notify_channel, update)
+                self.bot.speak(update)
         else:
             logging.info('Skipping Confluence feed checks.')
 
