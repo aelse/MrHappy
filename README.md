@@ -59,7 +59,8 @@ Listeners
 =========
 
 A listener should implement the listen method which will receive
-any campfire events containing a message body.
+any campfire events containing a message body. The entire message
+object is passed to a listener.
 
 Example
 
@@ -69,7 +70,7 @@ Example
 
     class MyListener(BotPlugin):
 
-        def listen(self, bot, e, message):
+        def listen(self, bot, message):
             if message[u'type'] != u'TextMessage':
                 return
 
@@ -85,7 +86,8 @@ when asked privately or in channel. An exchange may look like:
     (MrHappy) You told me to say: hello
 
 The command plugin should implement a method named command_<cmd> where
-cmd is the in-chat text that should invoke the command.
+cmd is the in-chat text that should invoke the command. The command,
+arguments and name of the requestor are passed.
 
 An implementation of the exchange above might look like:
 
@@ -94,6 +96,6 @@ An implementation of the exchange above might look like:
 
     class Speak(BotPlugin):
 
-        def command_say(self, bot, e, command, args, channel, nick):
+        def command_say(self, bot, e, command, args, nick):
             bot.reply('You told me to say: ' + args, '', '')
 
