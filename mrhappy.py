@@ -24,7 +24,6 @@
 import os
 import sys
 import string
-import time
 import logging
 from logging import debug, info, warn, error
 from threading import Thread, Event
@@ -98,6 +97,7 @@ class OutputManager(Thread):
         self.queue = []
 
     def run(self):
+        import time
         while 1:
             self.event.wait()
             while self.queue:
