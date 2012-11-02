@@ -146,6 +146,9 @@ class MrHappyBot(object):
             info('Command: %s' % cmd)
             self.do_command(e, string.strip(cmd), string.strip(from_nick))
 
+        # Pass the message to all listeners
+        self.do_listeners(e, msg)
+
     def ex_handler(self, ex):
         #self.shutdown('Exception %s' % ex)
         info('Exception %s' % ex)
@@ -259,6 +262,9 @@ class MrHappyBot(object):
             c.join(channel)
 
     def do_command(self, e, cmd, nick):
+        """
+        Receive command messages.
+        """
         debug('Received a command')
         channel = None
         if e.eventtype() == "pubmsg":
@@ -286,6 +292,21 @@ class MrHappyBot(object):
             if f:
                 f(self, e, command, args, channel, nick)
         #self.reply('Responding to direct request.', channel, nick)
+
+    def do_listeners(self, e, msg):
+        """
+        Listeners receive all messages.
+        """
+        plugins = list(self.plugins)
+        for plugin in plugins:
+            f = None
+            try:
+                f = getattr(plugin, 'listen')
+            except AttributeError:
+                pass
+
+            if f:
+                f(self, e, msg)
 
 
 def parse_options():
