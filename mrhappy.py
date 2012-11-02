@@ -43,9 +43,9 @@ conf = {
         'name': 'MrHappy, the python bot.',
     },
     'Server': {
-        'retry_interval': '60',
-        'host': 'localhost',
-        'port': '6667',
+        'campfire_prefix', 'mrhappy',
+        'token', 'your token here',
+        'room', 'MrHappy',
     },
 }
 
@@ -112,8 +112,7 @@ class OutputManager(Thread):
 
 
 class MrHappyBot(object):
-    def __init__(self, token, campfire_prefix, room, nick, name,
-                 nickpass=None, recon=60):
+    def __init__(self, token, campfire_prefix, room, nick, name):
         self.connection = CampfireConnection(campfire_prefix, token, room)
         self.queue = OutputManager(self.connection, .2)
         self.queue.start()
@@ -322,7 +321,6 @@ def gen_config(load_plugins):
     config.add_section('General')
     config.set('General', 'nick', 'MrHappy')
     config.set('General', 'name', 'MrHappy, the Python bot.')
-    config.set('General', 'nickpass', 'mypass')
     config.add_section('Server')
     config.set('Server', 'host', 'localhost')
     config.set('Server', 'retry_interval', '60')
