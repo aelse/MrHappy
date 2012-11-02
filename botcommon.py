@@ -29,25 +29,3 @@ class OutputManager(Thread):
   def send(self, msg, paste):
     self.queue.append((msg.strip(),paste))
     self.event.set()
-
-
-def trivial_bot_main(klass):
-  if len(sys.argv) != 4:
-    botname = os.path.basename(sys.argv[0])
-    print "Usage: %s <server[:port]> <channel> <nickname>" % botname
-    sys.exit(1)
-
-  s = sys.argv[1].split(":", 1)
-  server = s[0]
-  if len(s) == 2:
-    try:
-      port = int(s[1])
-    except ValueError:
-      print "Error: Erroneous port."
-      sys.exit(1)
-  else:
-    port = 6667
-  channel = sys.argv[2]
-  nickname = sys.argv[3]
-
-  klass(channel, nickname, server, port).start()
