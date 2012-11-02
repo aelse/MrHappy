@@ -25,7 +25,7 @@ class Jenkins(BotPlugin):
         except:
             logging.warning('Invalid status_msg_limit')
 
-    def command_jenkins(self, bot, e, command, arguments, channel, nick):
+    def command_jenkins(self, bot, command, arguments, channel, nick):
         arguments = arguments.strip()
 
         # Provide help information if no sub-command given

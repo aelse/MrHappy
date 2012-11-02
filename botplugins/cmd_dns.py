@@ -13,7 +13,7 @@ class DNS(BotPlugin):
         except:
             self.repo_path = ''
 
-    def command_dns(self, bot, e, command, args, channel, nick):
+    def command_dns(self, bot, command, args, channel, nick):
         if args == 'update':
             result = os.system('cd {path} && {git} && {cmd}'.format(
                 path=self.repo_path, git='git pull',

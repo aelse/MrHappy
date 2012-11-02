@@ -89,22 +89,6 @@ class CampfireConnection():
         self.room.leave()
 
 
-# construct event object for campfire messages to simulate functionality
-# of the IRC module.
-class CampfireEvent():
-    def __init__(self, msg):
-        self.msg = msg
-
-    def arguments(self):
-        return [self.msg]
-
-    def eventtype(self):
-        return 'pubmsg'
-
-    def target(self):
-        return 'notnone'
-
-
 class MrHappyBot(object):
     def __init__(self, token, campfire_prefix, room, nick, name,
                  nickpass=None, recon=60):
@@ -123,7 +107,6 @@ class MrHappyBot(object):
     def handle_msg(self, msg):
         if msg['body'] is None:
             return
-        e = CampfireEvent(msg['body'])
         uid = msg['user_id']
         if not uid in self.cfusers:
             try:
@@ -139,15 +122,14 @@ class MrHappyBot(object):
             from_nick = 'Oops'
 
         info('Received from %s: %s' % (from_nick, msg['body']))
-        m = re.match('%s[:,](.*)' % self.nickname, e.arguments()[0],
-                     re.IGNORECASE)
+        m = re.match('%s[:,](.*)' % self.nickname, msg['body'], re.IGNORECASE)
         if m:
             cmd = m.groups()[0]
             info('Command: %s' % cmd)
-            self.do_command(e, string.strip(cmd), string.strip(from_nick))
+            self.do_command(string.strip(cmd), string.strip(from_nick))
 
         # Pass the message to all listeners
-        self.do_listeners(e, msg)
+        self.do_listeners(msg)
 
     def ex_handler(self, ex):
         #self.shutdown('Exception %s' % ex)
@@ -261,14 +243,12 @@ class MrHappyBot(object):
             info('Joining %s' % channel)
             c.join(channel)
 
-    def do_command(self, e, cmd, nick):
+    def do_command(self, cmd, nick):
         """
         Receive command messages.
         """
         debug('Received a command')
         channel = None
-        if e.eventtype() == "pubmsg":
-            channel = e.target()
 
         # Guarantee plugins a single space between args
         cmd = re.sub('\s\s+', ' ', cmd.strip())
@@ -290,10 +270,10 @@ class MrHappyBot(object):
                 pass
 
             if f:
-                f(self, e, command, args, channel, nick)
+                f(self, command, args, channel, nick)
         #self.reply('Responding to direct request.', channel, nick)
 
-    def do_listeners(self, e, msg):
+    def do_listeners(self, msg):
         """
         Listeners receive all messages.
         """
@@ -306,7 +286,7 @@ class MrHappyBot(object):
                 pass
 
             if f:
-                f(self, e, msg)
+                f(self, msg)
 
 
 def parse_options():

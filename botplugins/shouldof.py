@@ -4,7 +4,7 @@ from botplugin import BotPlugin
 
 class ShouldOf(BotPlugin):
 
-    def listen(self, bot, e, message):
+    def listen(self, bot, message):
         if message[u'type'] != u'TextMessage':
             return
 

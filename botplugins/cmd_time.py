@@ -3,5 +3,5 @@ import time
 
 class CommandTime(BotPlugin):
 
-    def command_time(self, bot, e, command, args, channel, nick):
+    def command_time(self, bot, command, args, channel, nick):
         bot.reply(time.asctime(), channel, nick)

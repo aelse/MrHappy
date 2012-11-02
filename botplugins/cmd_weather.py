@@ -4,7 +4,7 @@ from BeautifulSoup import BeautifulSoup
 
 class CommandTime(BotPlugin):
 
-    def command_weather(self, bot, e, command, args, channel, nick):
+    def command_weather(self, bot, command, args, channel, nick):
         city = 'sydney'
         if len(args):
             city = args.lower()
