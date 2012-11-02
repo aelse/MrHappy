@@ -24,12 +24,13 @@
 import os
 import sys
 import string
+import time
 import logging
 from logging import debug, info, warn, error
+from threading import Thread, Event
 import multiprocessing
 import re
 
-import botcommon
 from botplugins.botplugin import BotPlugin
 from pprint import PrettyPrinter
 
@@ -71,7 +72,7 @@ class CampfireConnection():
         self.room_name = room_name
         self.connect()
 
-    def privmsg(self, target, msg, paste):
+    def send(self, msg, paste):
         try:
             if paste:
                 self.room.paste(msg)
@@ -89,11 +90,35 @@ class CampfireConnection():
         self.room.leave()
 
 
+class OutputManager(Thread):
+
+    def __init__(self, connection, delay=.5):
+        Thread.__init__(self)
+        self.setDaemon(1)
+        self.connection = connection
+        self.delay = delay
+        self.event = Event()
+        self.queue = []
+
+    def run(self):
+        while 1:
+            self.event.wait()
+            while self.queue:
+                msg, paste = self.queue.pop(0)
+                self.connection.send(msg, paste)
+                time.sleep(self.delay)
+            self.event.clear()
+
+    def send(self, msg, paste):
+        self.queue.append((msg.strip(), paste))
+        self.event.set()
+
+
 class MrHappyBot(object):
     def __init__(self, token, campfire_prefix, room, nick, name,
                  nickpass=None, recon=60):
         self.connection = CampfireConnection(campfire_prefix, token, room)
-        self.queue = botcommon.OutputManager(self.connection, .2)
+        self.queue = OutputManager(self.connection, .2)
         self.queue.start()
         self.nickname = nick
         self.name = name
@@ -199,49 +224,11 @@ class MrHappyBot(object):
         except ValueError:
             warning('Attempted to remove unregistered plugin')
 
-    def on_privmsg(self, c, e):
-        debug('Received private message')
-        from_nick = e.source()
-        self.do_command(e, string.strip(e.arguments()[0]),
-                        string.strip(from_nick))
-
-    def on_pubmsg(self, c, e):
-        debug('Received public message')
-        from_nick = e.source()
-        m = re.match('%s[:,](.*)' % self.nickname, e.arguments()[0],
-                     re.IGNORECASE)
-        if m:
-            cmd = m.groups()[0]
-            self.do_command(e, string.strip(cmd), string.strip(from_nick))
-
-    def say_public(self, channel, text, paste=False):
-        "Print TEXT into public channel, for all to see."
-        debug('Sending public: %s' % text)
-        self.queue.send(text, channel, paste)
-
-    def say_private(self, nick, text, paste=False):
-        "Send private message of TEXT to NICK."
-        debug('Sending private to %s: %s' % (nick, text))
-        self.queue.send(text, nick, paste)
-
-    def reply(self, text, to_channel, to_private=None, paste=False):
-        "Send TEXT to either public channel or TO_PRIVATE nick (if defined)."
-        if to_channel is not None:
-            self.say_public(to_channel, text, paste)
-        elif to_private is not None:
-            self.say_private(to_private, text, paste)
-        else:
-            warn('Trying to send a message without channel or nick')
-
-    def get_version(self):
-        global version
-        return "MrHappy v" + version
-
-    def on_welcome(self, c, e):
-        info('Joining channels')
-        for channel in self.join_channels:
-            info('Joining %s' % channel)
-            c.join(channel)
+    def speak(self, text, is_paste=False):
+        """
+        Send text to channel
+        """
+        self.queue.send(text, is_paste)
 
     def do_command(self, cmd, nick):
         """
@@ -271,7 +258,6 @@ class MrHappyBot(object):
 
             if f:
                 f(self, command, args, channel, nick)
-        #self.reply('Responding to direct request.', channel, nick)
 
     def do_listeners(self, msg):
         """
