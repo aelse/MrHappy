@@ -11,7 +11,7 @@ class ShouldOf(BotPlugin):
         # Attempt to strip out URLs
         msg = re.sub('(https?|ftp)://\S+', '', message['body'])
 
-        pattern = "(should|would|could|might)(n't)? of(?! course)"
+        pattern = "(should|would|could|might|must)(n't)? of(?! course)"
         m = re.search(pattern, msg, re.IGNORECASE)
         if m:
             (a, b) = m.groups()
