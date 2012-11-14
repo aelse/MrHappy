@@ -27,10 +27,21 @@ words = [
 ]
 
 
-class ShouldOf(BotPlugin):
-    # Throttle number of fines it can issue
+class VerbalMorality(BotPlugin):
     last_fined = 0
-    delay_before_fine = 600  # seconds
+
+    # Throttle rate at which it can issue fines
+    delay_before_fine = 1800
+
+    config_options = {
+        'delay_before_fine': '1800',
+    }
+
+    def setup(self, bot, options):
+        try:
+            self.delay_before_fine = int(options['delay_before_fine'])
+        except:
+            self.delay_before_fine = 1800  # seconds
 
     def listen(self, bot, message):
         if message[u'type'] != u'TextMessage':
