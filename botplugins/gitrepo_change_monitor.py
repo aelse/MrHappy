@@ -49,8 +49,11 @@ class GitRepoMonitor(BotPlugin):
             for repo in repos:
                 logging.debug('Looking in repo %s' % repo)
                 msgs = monitor_repo(self.git_repos, repo)   
-                for msg in msgs:
-                    self.bot.speak(msg)
+                if len(msgs) > 0:
+                    msg = '\n'.join(msgs)
+                    self.bot.speak(msg, paste=True)
+                #for msg in msgs:
+                #    self.bot.speak(msg)
         else:
             logging.info('Skipping git repository checks.')
 
