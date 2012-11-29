@@ -221,11 +221,11 @@ class MrHappyBot(object):
         except ValueError:
             warning('Attempted to remove unregistered plugin')
 
-    def speak(self, text, is_paste=False):
+    def speak(self, text, paste=False):
         """
         Send text to channel
         """
-        self.queue.send(text, is_paste)
+        self.queue.send(text, paste)
 
     def do_command(self, cmd, nick):
         """
