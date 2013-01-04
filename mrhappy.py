@@ -66,7 +66,6 @@ class CampfireConnection():
         self.subdomain = subdomain
         self.token = token
         self.room_name = room_name
-        self.connect()
 
     def send(self, msg, paste):
         try:
@@ -123,6 +122,7 @@ class MrHappyBot(object):
         self.cfusers = {}
 
     def start(self):
+        self.connection.connect()
         self.connection.room.listen(self.handle_msg, self.ex_handler)
 
     def handle_msg(self, msg):
