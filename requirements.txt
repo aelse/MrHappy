@@ -1,0 +1,8 @@
+Twisted==12.3.0
+argparse==1.2.1
+distribute==0.6.24
+httplib2==0.7.7
+pinder==1.0.1
+pyOpenSSL==0.13
+wsgiref==0.1.2
+zope.interface==4.0.3
