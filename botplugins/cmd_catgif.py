@@ -1,3 +1,4 @@
+import os
 from botplugin import BotPlugin
 
 gifs = []
@@ -7,7 +8,9 @@ def get_catgif():
     import random
     global gifs
     if not len(gifs):
-        gifs = open('botplugins/catgif.txt', 'r').read().split()
+        f = open(os.path.join(os.path.dirname(__file__), 'catgif.txt'), 'r')
+        gifs = f.read().split()
+        f.close()
         random.shuffle(gifs)
     return gifs.pop()
 
