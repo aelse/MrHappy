@@ -43,9 +43,10 @@ def generate_gif_list():
             url = image.get('src')
             if re.search('\.gif$', url):
                 catgif_urls.append(url)
-    f = open('botplugins/catgif.txt', 'w')
-    f.write('\n'.join(catgif_urls))
-    f.close()
+    return catgif_urls
 
 if __name__ == '__main__':
-    generate_gif_list()
+    urls = generate_gif_list()
+    f = open(file_name, 'w')
+    f.write('\n'.join(catgif_urls))
+    f.close()
