@@ -1,3 +1,4 @@
+import os
 from botplugin import BotPlugin
 
 gifs = []
@@ -7,7 +8,10 @@ def get_doggif():
     import random
     global gifs
     if not len(gifs):
-        gifs = open('botplugins/doggif.txt', 'r').read().split()
+        fname = os.path.join(os.path.dirname(__file__), 'doggif.txt')
+        f = open(fname, 'r')
+        gifs = f.read().split()
+        f.close()
         random.shuffle(gifs)
     return gifs.pop()
 
@@ -45,9 +49,10 @@ def generate_gif_list():
                 doggif_urls.append(url)
         if len(images) < 5:  # beyond final page
             break
+    return doggif_urls
+
+if __name__ == '__main__':
+    doggif_urls = generate_gif_list()
     f = open('botplugins/doggif.txt', 'w')
     f.write('\n'.join(doggif_urls))
     f.close()
-
-if __name__ == '__main__':
-    generate_gif_list()
