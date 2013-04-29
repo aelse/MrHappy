@@ -5,8 +5,12 @@ all_gifs = {
     'antelope': [
         'http://www.datgif.com/wp-content/uploads/2012/07/biker-hit-by-antelope.gif',
     ],
+    'bear': [
+        'http://i.imgur.com/r6dj1.jpg',
+    ],
     'camel': [
         'http://i.minus.com/iNN3m7EHPMNWl.gif',
+        'http://25.media.tumblr.com/tumblr_mazpigv9zx1qd74lho1_400.gif',
     ],
     'duck': [
         'http://i.imgur.com/ZCpaZ.jpg'
@@ -14,8 +18,23 @@ all_gifs = {
     'gorilla': [
         'http://24.media.tumblr.com/tumblr_m4s9fzX57L1rwcc6bo1_250.gif',
     ],
+    'koala': [
+        'http://24.media.tumblr.com/tumblr_lqulix92EQ1r1kcfyo1_400.gif',
+    ],
+    'lex': [
+        'https://bpl.campfirenow.com/room/525308/thumb/3995944/lexogif.gif',
+    ],
+    'otter': [
+        'http://s3-ec.buzzfed.com/static/enhanced/webdr01/2013/2/20/11/anigif_enhanced-buzz-14268-1361377451-5.gif',
+    ],
     'pigeon': [
         'http://gifs.gifbin.com/1601003555.gif',
+    ],
+    'sheep': [
+        'http://i.imgur.com/bqR8ksG.gif',
+    ],
+    'wolf': [
+        'http://24.media.tumblr.com/tumblr_m6lmlhq01L1r1rqulo1_500.gif',
     ],
 }
 gifs = {}
