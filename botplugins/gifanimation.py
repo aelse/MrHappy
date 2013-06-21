@@ -12,11 +12,15 @@ all_gifs = {
         'http://i.minus.com/iNN3m7EHPMNWl.gif',
         'http://25.media.tumblr.com/tumblr_mazpigv9zx1qd74lho1_400.gif',
     ],
+    'cyclone': [
+        'http://i.imgur.com/9v0QDMr.gif',
+    ],
     'duck': [
         'http://i.imgur.com/ZCpaZ.jpg'
     ],
     'gorilla': [
         'http://24.media.tumblr.com/tumblr_m4s9fzX57L1rwcc6bo1_250.gif',
+        'http://i.imgur.com/n9f2H.gif',
     ],
     'koala': [
         'http://24.media.tumblr.com/tumblr_lqulix92EQ1r1kcfyo1_400.gif',
