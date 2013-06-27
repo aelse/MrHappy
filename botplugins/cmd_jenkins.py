@@ -1,6 +1,7 @@
 from botplugin import BotPlugin
 import logging
 import xml.dom.minidom
+import requests
 import urllib
 import re
 
@@ -71,15 +72,13 @@ class Jenkins(BotPlugin):
 
 
 def fetch_url(url):
-    data = None
     try:
-        response = urllib.urlopen(url)
-        if response.getcode() == 200:
-            data = response.read()
-        response.close()
+        response = requests.get(url, auth=(username, password))
+        if response.ok:
+            return response.text
     except:
         pass
-    return data
+    return None
 
 def gen_build_info(jenkins_url, proj_name, limit=-1):
     url = '%s/job/%s/rssAll' % (jenkins_url, proj_name)
