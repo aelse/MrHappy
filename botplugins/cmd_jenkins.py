@@ -59,19 +59,19 @@ class Jenkins(BotPlugin):
 
         if f:
             message = f(args)
-            if type(message) == type(''):
-                message = [message]
-            for line in message:
-                bot.speak(line)
+            bot.speak(message, paste=True)
         else:
             bot.speak('Bad arguments \'%s\'' % (arguments))
 
     def cmd_help(self, args):
-        help = [
-            'help', ' - Print this message',
-            'buildstatus <project>', ' - Report on project build',
-        ]
-        return help 
+        help = {
+            'help': 'Print this message',
+            'buildstatus <project>': 'Report on project build',
+        }
+        msg = ''
+        for cmd, info in help.items():
+            msg += '{:<25} - {}\n'.format(cmd, info)
+        return msg
 
     def cmd_buildstatus(self, proj_name):
         if not self.proj_matcher.match(proj_name):
@@ -100,11 +100,11 @@ def gen_build_info(jenkins_url, username, password, proj_name, limit=-1):
     entries = xml_data.getElementsByTagName('entry')
 
     count = 0
-    buildstatus = ['== Builds for %s ==' % proj_name]
+    buildstatus = 'Builds for %s\n' % proj_name
     for e in entries:
         updated = e.getElementsByTagName('updated')[0].lastChild.nodeValue
         title = e.getElementsByTagName('title')[0].lastChild.nodeValue
-        buildstatus.append('%s: %s' % (updated, title))
+        buildstatus += '{}: {}\n'.format(updated, title)
         count += 1
         if count == limit:
             break
