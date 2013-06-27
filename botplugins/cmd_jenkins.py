@@ -10,6 +10,8 @@ class Jenkins(BotPlugin):
     config_options = {
         'jenkins_url': 'http://jenkins',
         'status_msg_limit': '-1',
+        'username': '',
+        'password': '',
     }
 
     def setup(self, bot, options):
@@ -25,6 +27,12 @@ class Jenkins(BotPlugin):
             self.status_msg_limit = int(options['status_msg_limit'])
         except:
             logging.warning('Invalid status_msg_limit')
+
+        if 'username' in options:
+            self.username = options['username']
+
+        if 'password' in options:
+            self.password = options['password']
 
     def command_jenkins(self, bot, command, arguments, nick):
         arguments = arguments.strip()
@@ -68,10 +76,10 @@ class Jenkins(BotPlugin):
     def cmd_buildstatus(self, proj_name):
         if not self.proj_matcher.match(proj_name):
             return 'Badly formatted project %s' % proj_name
-        return gen_build_info(self.jenkins_url, proj_name, self.status_msg_limit)
+        return gen_build_info(self.jenkins_url, self.username, self.password, proj_name, self.status_msg_limit)
 
 
-def fetch_url(url):
+def fetch_url(url, username, password):
     try:
         response = requests.get(url, auth=(username, password))
         if response.ok:
@@ -80,9 +88,9 @@ def fetch_url(url):
         pass
     return None
 
-def gen_build_info(jenkins_url, proj_name, limit=-1):
+def gen_build_info(jenkins_url, username, password, proj_name, limit=-1):
     url = '%s/job/%s/rssAll' % (jenkins_url, proj_name)
-    rss = fetch_url(url)
+    rss = fetch_url(url, username, password)
     if not rss:
         return ['Unable to fetch build information']
 
