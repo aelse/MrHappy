@@ -94,8 +94,10 @@ def load_time(tstamp_file):
     try:
         fh = open(tstamp_file, 'r')
         t = fh.read()
+        fh.close()
         date = parser.parse(t)
     except:
+        logging.warning('Could not read timestamp from %s' % tstamp_file)
         utc = tz.gettz('UTC')
         date = datetime.now(utc)
         # Save the current time as the timestamp
