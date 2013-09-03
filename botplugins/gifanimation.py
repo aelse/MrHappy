@@ -34,6 +34,9 @@ all_gifs = {
     'pigeon': [
         'http://gifs.gifbin.com/1601003555.gif',
     ],
+    'plane': [
+        'https://lh5.googleusercontent.com/-rNBQefhJmMQ/UgfeV9DVAmI/AAAAAAAAKhw/T_vMLakX0VE/w346-h195/gif.jpg',
+    ],
     'sheep': [
         'http://i.imgur.com/bqR8ksG.gif',
     ],
