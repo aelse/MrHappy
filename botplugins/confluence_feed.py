@@ -6,9 +6,6 @@ from datetime import datetime
 from dateutil import parser, tz
 from BeautifulSoup import BeautifulSoup
 
-time_save_file = 'confluence_save_time'
-last_date = None
-
 
 class ConfluenceFeed(BotPlugin):
 
@@ -17,6 +14,8 @@ class ConfluenceFeed(BotPlugin):
     fetch_interval = 60
     username = ''
     password = ''
+    time_save_file = 'confluence_save_time'
+    last_date = None
 
     config_options = {
         'confluence_feed_url': '',
@@ -42,8 +41,7 @@ class ConfluenceFeed(BotPlugin):
         if options.has_key('password'):
             self.password = options['password']
 
-        global last_date
-        last_date = load_time(time_save_file)
+        self.last_date = load_time(self.time_save_file)
 
         if not self.timer and self.fetch_interval:
             logging.info('Setting feed monitor timer to %d seconds.' % self.fetch_interval)
@@ -61,7 +59,22 @@ class ConfluenceFeed(BotPlugin):
     def notify_channel_of_changes(self):
         if self.confluence_feed_url:
             logging.info('Looking for Confluence updates.')
-            confluence_updates = check_feed(self.confluence_feed_url, self.username, self.password)
+            feed_entries = check_feed(self.confluence_feed_url, self.username, self.password)
+            confluence_updates = []
+            new_date = self.last_date
+            for entry in feed_entries:
+                published = parser.parse(entry.published)
+                if published > self.last_date:
+                    # Append the update to the list if more recent than
+                    # last reported date
+                    confluence_updates.append(feed_entry_string(entry))
+                    # track most recent date
+                    if published > new_date:
+                        new_date = published
+            # Update most recent seen timestamp in save file
+            if new_date > self.last_date:
+                save_time(self.time_save_file, new_date)
+                self.last_date = new_date
             for update in confluence_updates:
                 logging.debug('Confluence update: %s' % update)
                 self.bot.speak(update)
@@ -84,6 +97,7 @@ def save_time(tstamp_file, time):
         fh.write(str(time))
         fh.close()
     except:
+        logging.error('Could not save confluence feed time')
         pass
 
 def load_time(tstamp_file):
@@ -134,30 +148,21 @@ def feed_entry_string(entry):
     return s
 
 def check_feed(url, username, password):
-    global last_date
     r = requests.get(url, auth=(username, password))
     confluence_updates = []
     if r.status_code == 200:
-
-        new_date = last_date
         f = feedparser.parse(r.text)
-        for entry in f.entries:
-            published = parser.parse(entry.published)
-            if published > last_date:
-                if published > new_date:
-                    new_date = published
-                # Append the update to the list
-                confluence_updates.append(feed_entry_string(entry))
-        if new_date > last_date:
-            save_time(time_save_file, new_date)
-            last_date = new_date
-    return confluence_updates
+        return f.entries
+    logging.warning('Could not check confluence feed')
+    return []
 
 if __name__ == "__main__":
     import sys
-    last_date = load_time(time_save_file)
+    last_date = load_time('confluence_save_time')
 
     # url, username, password
-    confluence_updates = check_feed(sys.argv[1], sys.argv[2], sys.argv[3])
-    for update in confluence_updates:
-        print update
+    feed_entries = check_feed(sys.argv[1], sys.argv[2], sys.argv[3])
+    for entry in feed_entries:
+        published = parser.parse(entry.published)
+        if published > last_date:
+            print feed_entry_string(entry)
